@@ -1,0 +1,61 @@
+### Variables
+@bookOrderUrl = http://localhost:8001
+@basketUrl = http://localhost:8002
+
+@CustomerId = 123
+
+####order#####
+
+### Create Order (for testing)
+POST {{bookOrderUrl}}/order
+Content-Type: application/json
+
+{
+    "orderId": "123",
+    "customer": {
+        "name": "John Doe",
+        "email": "JohnD@mail.com",
+        "address": "123 Main St"
+    },
+    "items": [
+      {
+        "productId": "book-001",
+        "productName": "The Great Gatsby",
+        "quantity": "1",
+        "Unitprice": "10.99"
+      },
+      {
+        "productId": "book-002",
+        "productName": "To Kill a Mockingbird",
+        "quantity": "2",
+        "unitprice": "12.99"
+      }
+    ],
+    "totalPrice": "36.97",
+    "status": 0
+}
+
+#####Basket######
+
+### Get Bascket (for testing)
+GET {{basketUrl}}/basket/{{customerId}}
+
+
+### Add Item to Basket (for testing)
+POST {{basketUrl}}/basket/{{customerId}}/items
+Content-Type: application/json
+{
+    "productId": "book-001",
+    "productName": "The Great Gatsby",
+    "unitprice": 10.99
+}
+
+### Remove Item from Basket (for testing)
+DELETE {{basketUrl}}/basket/{{customerId}}/items/book-001
+
+### Checkout Basket (for testing)
+POST {{basketUrl}}/basket/{{customerId}}/checkout
+
+
+####Inventory######
+
