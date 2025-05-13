@@ -1,7 +1,10 @@
-﻿using Dapr.Client;
-using Microsoft.AspNetCore.Mvc;
+﻿using Basket.Models;
 using Basket.Services;
-using Basket.Models;
+using Dapr;
+using Dapr.Client;
+using Microsoft.AspNetCore.Mvc;
+using Shared.Messages;
+using Shared.Dto;
 
 namespace Basket.Controllers
 {
@@ -28,6 +31,8 @@ namespace Basket.Controllers
         {
             //_logger.LogInformation("Getting cart for customer {customerId}", customerId);
             var cart = await _basketService.GetCartAsync(customerId);
+            if (cart == null)
+                return NotFound();
             return Ok(cart);
         }
 
@@ -47,13 +52,36 @@ namespace Basket.Controllers
             return Ok();
         }
 
-        [HttpPost("checkout")]
-        public async Task<ActionResult> Checkout(string customerId)
+        // PUB/SUB: validate-basket → BasketValidated
+        [Topic("bookpubsub", "validate-basket")]
+        [HttpPost("/validate-basket")]
+        public async Task<IActionResult> ValidateBasket([FromBody] BasketMessage message)
         {
-            //_logger.LogInformation("Checking out cart for customer {customerId}", customerId);
-           await _basketService.Checkout(customerId);
-            //await _daprClient.PublishEventAsync(PUBSUB_NAME, TOPIC_NAME, customerId);
+            _logger.LogInformation("Validating basket for workflow {workflowId}", message.WorkflowId);
+
+            // Dummy validation
+            var result = new OrderDto
+            {
+                OrderId = message.OrderId,
+                Customer = message.Customer,
+                Items = message.Items,
+                TotalPrice = message.TotalPrice,
+                Status = "validated"
+            };
+
+            await _daprClient.PublishEventAsync("pubsub", "BasketValidated", result);
+
+            _logger.LogInformation("Published BasketValidated for order {OrderId}", message.OrderId);
             return Ok();
         }
     }
 }
+
+        //[HttpPost("checkout")]
+        //public async Task<ActionResult> Checkout(string customerId)
+        //{
+        //    //_logger.LogInformation("Checking out cart for customer {customerId}", customerId);
+        //   await _basketService.Checkout(customerId);
+        //    //await _daprClient.PublishEventAsync(PUBSUB_NAME, TOPIC_NAME, customerId);
+        //    return Ok();
+        //}

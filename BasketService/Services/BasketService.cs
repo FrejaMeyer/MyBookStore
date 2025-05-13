@@ -8,7 +8,7 @@ namespace Basket.Services
         public Task<Cart> GetCartAsync(string customerId);
         public Task AddItemAsync(string customerId, CartItems item);
         public Task RemoveItemAsync(string customerId, string productId);
-        public Task Checkout(string customerId);
+      //  public Task Checkout(string customerId);
     }
 
     public class BasketService : IBasketService
@@ -56,12 +56,12 @@ namespace Basket.Services
             }   
         }
 
-        public async Task Checkout(string customerId)
-        {
-            var cart = await GetCartAsync(customerId);
-            _logger.LogInformation("Checkout initiated for customer {customerId}", customerId);
-            await _daprClient.PublishEventAsync(_pubsubName, _topicName, cart);
-        }
+        //public async Task Checkout(string customerId)
+        //{
+        //    var cart = await GetCartAsync(customerId);
+        //    _logger.LogInformation("Checkout initiated for customer {customerId}", customerId);
+        //    await _daprClient.PublishEventAsync(_pubsubName, _topicName, cart);
+        //}
 
 
 

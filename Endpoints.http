@@ -1,10 +1,12 @@
 ### Variables
 @bookOrderUrl = http://localhost:8001
 @basketUrl = http://localhost:8002
+@inventoryUrl = http://localhost:8003
+@paymentUrl = http://localhost:8004 
+@catalogUrl = http://localhost:8005
+@workflowurl = http://localhost:8006
 
-@CustomerId = 123
-
-####order#####
+####order#########################################################
 
 ### Create Order (for testing)
 POST {{bookOrderUrl}}/order
@@ -35,7 +37,9 @@ Content-Type: application/json
     "status": 0
 }
 
-#####Basket######
+#####Basket##################################################
+
+@CustomerId = 123
 
 ### Get Bascket (for testing)
 GET {{basketUrl}}/basket/{{customerId}}
@@ -57,5 +61,163 @@ DELETE {{basketUrl}}/basket/{{customerId}}/items/book-001
 POST {{basketUrl}}/basket/{{customerId}}/checkout
 
 
-####Inventory######
+####Inventory##############################################
 
+@productId = book-001
+
+### Get Inventory for product (for testing)
+GET {{inventoryUrl}}/inventory/{{productId}}
+
+### Update Inventory
+POST {{inventoryUrl}}/inventory
+Content-type: application/json
+{
+    "productId": "book-001",
+    "productName": "The Great Gatsby",
+    "quantityAvailable": 10,
+    "inStock": true
+}
+
+### Reserve Product (for testing)
+POST {{inventoryUrl}}/inventory/reserve/{{productId}}?quantity=2
+
+
+########## Payment ##########################################
+
+@orderId = order-123
+@customerId = customer-123
+
+### Process Payment (direct call)
+POST {{paymentUrl}}/payment
+Content-Type: application/json
+{
+    "orderId": "{{orderId}}",
+    "customerId": "{{customerId}}",
+    "amount": 36.97
+}
+
+### Trigger payment via Pubsub
+POST {{paymentUrl}}/payment/events/payment-request
+Content-Type: application/json
+{
+    "orderId": "{{orderId}}",
+    "customerId": "{{customerId}}",
+    "amount": 36.97
+}
+
+#### Getpayment result (for testing)
+GET {{paymentUrl}}/payment/{{orderId}}
+
+
+############# Catalog ##################################################
+
+
+### Get all books
+GET {{catalogUrl}}/catalog
+
+### Get one book
+GET {{catalogUrl}}/catalog/book-001
+
+### Add book
+POST {{catalogUrl}}/catalog
+Content-Type: application/json
+
+{
+  "id": "book-001",
+  "title": "The Pragmatic Programmer",
+  "author": "Andrew Hunt",
+  "description": "A modern classic on software development.",
+  "price": 42.50,
+  "stockQuantity": 20
+}
+
+
+############################### Workflow ##################################
+
+### Start new workflow
+POST {{workflowurl}}/workflow/start-order
+Content-Type: application/json
+
+{
+  "orderId": "order-001",
+  "status": "created",
+  "customer": {
+    "name": "Test Person",
+    "email": "test@bookstore.dk",
+    "adress": "Testvej 123"
+  },
+  "items": [
+    {
+      "productId": "BOOK123",
+      "quantity": 2,
+      "unitPrice": 150.0
+    }
+  ],
+  "totalPrice": "300"
+}
+
+### Simuler: BasketValidated event
+POST {{workflowurl}}/workflow/events/basket-validated
+Content-Type: application/json
+
+{
+  "orderId": "test-001",
+  "status": "validated",
+  "customer": {
+    "name": "Test Person",
+    "email": "test@bookstore.dk",
+    "adress": "Testvej 123"
+  },
+  "items": [
+    {
+      "productId": "BOOK123",
+      "quantity": 2,
+      "unitPrice": 150.0
+    }
+  ],
+  "totalPrice": "300"
+}
+
+### Simuler: OrderCreated event
+POST {{workflowurl}}/workflow/events/order-created
+Content-Type: application/json
+
+{
+  "orderId": "test-001",
+  "status": "confirmed",
+  "customer": {
+    "name": "Test Person",
+    "email": "test@bookstore.dk",
+    "adress": "Testvej 123"
+  },
+  "items": [
+    {
+      "productId": "BOOK123",
+      "quantity": 2,
+      "unitPrice": 150.0
+    }
+  ],
+  "totalPrice": "300"
+}
+
+### Simuler: PaymentProcessed event
+POST {{workflowurl}}/workflow/events/payment-processed
+Content-Type: application/json
+
+{
+  "orderId": "test-001",
+  "status": "paid",
+  "customer": {
+    "name": "Test Person",
+    "email": "test@bookstore.dk",
+    "address": "Testvej 123"
+  },
+  "items": [
+    {
+      "productId": "BOOK123",
+      "quantity": 2,
+      "unitPrice": 150.0
+    }
+  ],
+  "totalPrice": "300"
+}

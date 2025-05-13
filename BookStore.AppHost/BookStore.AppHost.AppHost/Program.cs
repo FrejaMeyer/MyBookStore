@@ -14,5 +14,7 @@ builder.AddProject<BookOrder>("bookorderservice")
     })
     .WithReference(statestore);
 
+builder.AddProject<Projects.Workflow>("workflow");
+
 builder.Build().Run();
 

@@ -54,6 +54,7 @@ namespace BookOrder.Controller
             return Ok(orderId);
         }
 
+        [Topic("bookpubsub", "OrderCreated2")]
         [HttpPost("/orders-sub")]
         public async Task<IActionResult> HandleOrderUpdate(CloudEvent<Order> cloudEvent)
         {

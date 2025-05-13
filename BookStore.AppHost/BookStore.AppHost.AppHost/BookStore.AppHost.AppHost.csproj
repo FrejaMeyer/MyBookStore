@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\BookOrder\BookOrder.csproj" />
+    <ProjectReference Include="..\..\Workflow\Workflow.csproj" />
   </ItemGroup>
 
 </Project>
