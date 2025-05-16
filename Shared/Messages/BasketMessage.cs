@@ -10,7 +10,7 @@ namespace Shared.Messages
     public class BasketMessage : WorkflowMessage
     {
         public string OrderId { get; set; }
-        public string TotalPrice { get; set; }
+        public double TotalPrice { get; set; }
         public CustomerDto Customer { get; set; }
         public List<CartItemDto> Items { get; set; }
 

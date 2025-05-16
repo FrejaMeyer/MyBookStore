@@ -96,7 +96,10 @@ namespace BookOrder.Services
             // Preserve important fields from existing state
             update.Customer = update.Customer ?? existing.Customer;
             update.Items = update.Items ?? existing.Items;
-            update.TotalPrice = update.TotalPrice ?? existing.TotalPrice;
+            if (update.TotalPrice == 0)
+            {
+                update.TotalPrice = existing.TotalPrice;
+            }
 
             return update;
         }

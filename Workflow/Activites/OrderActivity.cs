@@ -20,7 +20,7 @@ namespace Workflow.Activites
         {
             _logger.LogInformation("Creating order {OrderId}", order.OrderId);
             var message = MessageHelper.FillMessage<OrderMessage>(context, order);
-            await _daprClient.PublishEventAsync("pubsub", "create-order", message);
+            await _daprClient.PublishEventAsync("bookpubsub", "create-order", message);
             return null;
         }
     }

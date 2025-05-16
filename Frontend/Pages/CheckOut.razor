@@ -1,0 +1,166 @@
+﻿@page "/checkout"
+@inject BasketClientService BasketService
+@inject CustomerSessionService Session
+@inject NavigationManager Navigation
+@inject PaymentService PaymentService
+@using Shared.Dto;
+@using Services; 
+
+<h3>Your ordre</h3>
+
+@if (cart == null || cart.Items.Count == 0)
+{
+    <p>Your cart is empty.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Produkt</th>
+                <th>Ouantity</th>
+                <th>Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in cart.Items)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Quantity</td>
+                    <td>@item.UnitPrice.ToString("C")</td>
+                    <td>@((item.Quantity* item.UnitPrice).ToString("C"))</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3"><strong>Total</strong></td>
+                <td><strong>@cart.Items.Sum(i => i.Quantity * i.UnitPrice).ToString("C")</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <h4>Fill in your information</h4>
+
+    <EditForm Model="customer" OnValidSubmit="HandleCheckout">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-2">
+            <label>Name:</label>
+            <InputText class="form-control" @bind-Value="customer.Name" />
+        </div>
+        <div class="mb-2">
+            <label>Email:</label>
+            <InputText class="form-control" @bind-Value="customer.Email" />
+        </div>
+        <div class="mb-2">
+            <label>Address:</label>
+            <InputText class="form-control" @bind-Value="customer.Address" />
+        </div>
+
+        <button class="btn btn-primary" type="submit" disabled="@isProcessing">Confirm and pay</button>
+    </EditForm>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <p class="text-danger">@errorMessage</p>
+    }
+
+    @if (ShowModal)
+    {
+        <div class="modal show d-block" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Payment status</h5>
+                    </div>
+                    <div class="modal-body">
+                        <p>@ModalMessage</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-primary" @onclick="HandleModalClose">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-backdrop fade show"></div>
+    }
+}
+
+@code {
+    private CustomerDto customer = new();
+    private CartDto? cart;
+    private bool isProcessing = false;
+    private string? errorMessage;
+
+    private bool ShowModal = false;
+    private string ModalMessage = string.Empty;
+    private string? CreatedOrderId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        customer.CustomerId = Session.GetCustomerId();
+        cart = await BasketService.GetCartAsync();
+    }
+    private async Task HandleCheckout()
+    {
+        isProcessing = true;
+        errorMessage = null;
+        CreatedOrderId = null;
+
+        try
+        {
+            var paymentRequest = new PaymentRequestDto
+            {
+                OrderId = Guid.NewGuid().ToString(),
+                Amount = cart.Items.Sum(x => x.UnitPrice * x.Quantity),
+            };
+
+            var paymentSuccess = await PaymentService.SimulatePaymentAsync(paymentRequest);
+
+            if (paymentSuccess)
+            {
+                // Hvis betaling lykkes, så gennemfør checkout og gem OrderId
+                CreatedOrderId = await BasketService.CheckoutAsync(customer);
+
+                if (!string.IsNullOrEmpty(CreatedOrderId))
+                {
+                    ModalMessage = "Betaling gennemført!";
+                }
+                else
+                {
+                    ModalMessage = "Fejl ved oprettelse af ordre. Prøv igen.";
+                }
+            }
+            else
+            {
+                ModalMessage = "Betaling blev afvist. Tjek oplysningerne og prøv igen.";
+            }
+
+            ShowModal = true;
+        }
+        catch (Exception ex)
+        {
+            ModalMessage = $"Uventet fejl: {ex.Message}";
+            ShowModal = true;
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void HandleModalClose()
+    {
+        ShowModal = false;
+
+        if (!string.IsNullOrEmpty(CreatedOrderId))
+        {
+            Navigation.NavigateTo($"/order/{CreatedOrderId}");
+        }
+    }
+}
+

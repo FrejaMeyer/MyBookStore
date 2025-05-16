@@ -1,0 +1,79 @@
+﻿@page "/book/{id}"
+@using Services
+@using Shared.Dto
+@inject HttpClient Http
+@inject BasketClientService BasketService
+@inject NavigationManager Navigation
+@inject CartStateService CartState
+
+@if (book == null)
+{
+    <p>Loader...</p>
+}
+else
+{
+    <div class="container mt-4">
+        <div class="row align-items-start">
+            <div class="col-md-4 text-center">
+                <img src="@book.ImageUrl" alt="@book.Title" class="img-fluid rounded shadow" style="max-height: 300px;" />
+            </div>
+
+            <div class="col-md-8">
+                <h2 class="fw-bold">@book.Title</h2>
+                <h4 class="text-muted mb-3">af @book.Author</h4>
+
+                <p><span class="fw-bold">Genre:</span> @book.Genre</p>
+                <p class="fs-5 fw-semibold text-success">Price: @book.Price kr</p>
+                <p><span class="fw-bold">På Stock:</span> @book.StockQuantity stk</p>
+
+                <button class="btn btn-danger btn-lg mt-3" @onclick="AddToCart">
+                    Add to cart
+                </button>
+            </div>
+        </div>
+        <div class="row mt-5">
+        <div class="col">
+            <h5 class="fw-bold">Description:</h5>
+            <p class="text-body">@book.Description</p>
+        </div>
+    </div>
+ </div>
+}
+
+@code {
+    [Parameter]
+    public string id { get; set; }
+
+    private Book book;
+
+    protected override async Task OnInitializedAsync()
+    {
+        book = await Http.GetFromJsonAsync<Book>($"catalogservice/method/api/catalog/{id}");
+    }
+
+    private async Task AddToCart()
+    {
+        var item = new CartItemDto
+        {
+            ProductId = book.Id?.Trim().ToLowerInvariant(),
+            Name = book.Title.Trim(),
+            Quantity = 1,
+            UnitPrice = book.Price
+        };
+
+        await BasketService.AddToCartAsync(item);
+        CartState.Increment(1); 
+    }
+
+    public class Book
+    {
+        public string Id { get; set; }
+        public string Title { get; set; }
+        public string Author { get; set; }
+        public double Price { get; set; }
+        public int StockQuantity { get; set; }
+        public string Genre { get; set; }
+        public string ImageUrl { get; set; }
+        public string Description { get; set; }
+    }
+}

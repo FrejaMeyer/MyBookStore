@@ -21,6 +21,8 @@ namespace Payment.Controllers
         [HttpPost]
         public async Task<IActionResult> ProcessPayment([FromBody] PaymentRequest paymentRequest)
         {
+            _logger.LogInformation("ProcessPayment hit for OrderId: {OrderId}", paymentRequest.OrderId);
+
             var result = await _paymentServices.ProcessPaymentAsync(paymentRequest);
             return Ok(result);
         }

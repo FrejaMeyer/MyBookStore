@@ -1,11 +1,28 @@
-using Microsoft.EntityFrameworkCore;
 using Catalog.Data;
+using Catalog.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowBlazorClient", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5227")  // den port Blazor kører på
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddControllers();
+
+builder.Services.AddScoped<ICatalogService, CatalogService>();
+
 
 builder.Services.AddDbContext<CatalogDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -21,6 +38,8 @@ if (app.Environment.IsDevelopment())
 
 //app.UseHttpsRedirection();
 
+app.UseCors("AllowBlazorClient");
 
+app.MapControllers();
 
 app.Run();

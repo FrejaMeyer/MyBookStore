@@ -1,0 +1,17 @@
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: sharedconfig
+spec:
+  httpPipeline:
+    handlers:
+      - name: cors
+        type: middleware.http.cors
+        version: v1
+        metadata:
+          - name: allowedOrigins
+            value: "http://localhost:5227"
+          - name: allowedMethods
+            value: "GET,POST,PUT,DELETE,OPTIONS"
+          - name: allowedHeaders
+            value: "*"

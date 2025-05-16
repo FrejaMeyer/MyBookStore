@@ -21,7 +21,7 @@ public class PaymentActivity : WorkflowActivity<Order, object?>
     {
         _logger.LogInformation("Processing payment for order {OrderId}", order.OrderId);
         var message = MessageHelper.FillMessage<PaymentMessage>(context, order);
-        await _daprClient.PublishEventAsync("pubsub", "process-payment", message);
+        await _daprClient.PublishEventAsync("bookpubsub", "process-payment", message);
         return null;
     }
 }

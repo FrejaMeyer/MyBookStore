@@ -1,30 +1,26 @@
-var builder = WebApplication.CreateBuilder(args);
+using Frontend;
+using Frontend.Services;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Blazored.Toast;
 
-builder.AddServiceDefaults();
+var builder = WebAssemblyHostBuilder.CreateDefault(args);
+builder.RootComponents.Add<App>("#app");
+builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// Add services to the container.
-builder.Services.AddRazorPages();
-
-var app = builder.Build();
-
-app.MapDefaultEndpoints();
-
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+builder.Services.AddScoped(sp => new HttpClient()
 {
-    app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
+    BaseAddress = new Uri("http://localhost:3500/v1.0/invoke/")
+});
 
-app.UseHttpsRedirection();
+builder.Services.AddScoped<BasketClientService>();
+builder.Services.AddScoped<CartStateService>();
+builder.Services.AddScoped<CustomerSessionService>();
+builder.Services.AddScoped<PaymentService>();
 
-app.UseRouting();
 
-app.UseAuthorization();
+builder.Services.AddBlazoredToast();
 
-app.MapStaticAssets();
-app.MapRazorPages()
-   .WithStaticAssets();
+// builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
-app.Run();
+await builder.Build().RunAsync();

@@ -1,0 +1,100 @@
+﻿@page "/"
+@using Shared.Dto
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<div class="container mt-5 text-center">
+    <h1 class="display-4 mb-5 fw-bold">📚 MyBookStore</h1>
+
+    <div class="row justify-content-center">
+        @if (randomBooks == null)
+        {
+            <p>Loading books...</p>
+        }
+        else
+        {
+            @foreach (var book in randomBooks)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow" style="cursor: pointer;" @onclick="() => OpenBook(book.Id)">
+                        <img src="@book.ImageUrl" class="card-img-top p-2" style="height: 300px; width: 100%; object-fit: contain; background-color: white;" />
+                        <div class="card-body">
+                            <h5 class="card-title">@book.Title</h5>
+                            <p class="card-text text-muted">by @book.Author</p>
+                        </div>
+                    </div>
+                </div>
+            }
+
+
+        }
+    </div>
+    
+    <hr class="my-5" />
+    <h4 class="text-start mb-3">Find a book</h4>
+
+    <input class="form-control mb-3" placeholder="Search by title or author..." @bind="searchQuery" />
+
+    @if (filteredBooks?.Any() == true)
+    {
+        <div class="row">
+            @foreach (var book in filteredBooks)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow" style="cursor: pointer;" @onclick="() => OpenBook(book.Id)">
+                        <img src="@book.ImageUrl" class="card-img-top p-2"
+                             style="height: 300px; width: 100%; object-fit: contain; background-color: white;" />
+                        <div class="card-body">
+                            <h5 class="card-title">@book.Title</h5>
+                            <p class="card-text text-muted">by @book.Author</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(searchQuery))
+    {
+        <p>No results found.</p>
+    }
+</div>
+
+
+@code {
+    private List<BookDto>? allBooks;
+    private List<BookDto>? randomBooks;
+    private string searchQuery = string.Empty;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        allBooks = await Http.GetFromJsonAsync<List<BookDto>>("catalogservice/method/api/catalog");
+
+        if (allBooks != null && allBooks.Count >= 3)
+        {
+            var rnd = new Random();
+            randomBooks = allBooks.OrderBy(_ => rnd.Next()).Take(3).ToList();
+        }
+    }
+
+    private void OpenBook(string id)
+    {
+        Navigation.NavigateTo($"/book/{id}");
+    }
+
+    private IEnumerable<BookDto> filteredBooks => string.IsNullOrWhiteSpace(searchQuery)
+        ? null
+        : allBooks?.Where(book =>
+            (!string.IsNullOrEmpty(book.Title) && book.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
+            (!string.IsNullOrEmpty(book.Author) && book.Author.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+        );
+
+      public class BookDto
+    {
+        public string Id { get; set; }
+        public string Title { get; set; }
+        public string Author { get; set; }
+        public string ImageUrl { get; set; }
+    }
+
+}

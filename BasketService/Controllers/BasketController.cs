@@ -1,87 +1,150 @@
-﻿using Basket.Models;
-using Basket.Services;
+﻿using Basket.Services;
 using Dapr;
 using Dapr.Client;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Messages;
 using Shared.Dto;
+using Shared.Messages;
+using Basket.Models;
 
-namespace Basket.Controllers
+[ApiController]
+[Route("basket")]
+public class BasketController : ControllerBase
 {
-    [ApiController]
-    [Route("basket/{customerId}")]
-    public class BasketController : ControllerBase
+    private readonly IBasketService _basketService;
+    private readonly ILogger<BasketController> _logger;
+    private readonly DaprClient _daprClient;
+
+    public BasketController(IBasketService basketService, ILogger<BasketController> logger, DaprClient daprClient)
     {
-        private readonly IBasketService _basketService;
-        private readonly ILogger<BasketController> _logger;
-        private readonly DaprClient _daprClient;
-
-        //private const string PUBSUB_NAME = "bookpubsub";
-        //private const string TOPIC_NAME = "basket";
-
-        public BasketController(IBasketService basketService, ILogger<BasketController> logger, DaprClient daprClient)
-        {
-            _basketService = basketService;
-            _logger = logger;
-            _daprClient = daprClient;
-        }
-
-        [HttpGet]
-        public async Task<ActionResult<Cart>> GetCart(string customerId)
-        {
-            //_logger.LogInformation("Getting cart for customer {customerId}", customerId);
-            var cart = await _basketService.GetCartAsync(customerId);
-            if (cart == null)
-                return NotFound();
-            return Ok(cart);
-        }
-
-        [HttpPost("items")]
-        public async Task<ActionResult<Cart>> AddItem(string customerId, [FromBody] CartItems item)
-        {
-            //_logger.LogInformation("Adding {item.ProductId} x{Quantity} to cart for customer {customerId}", item.PruductId, item.Quantity, customerId);
-            await _basketService.AddItemAsync(customerId, item);
-            return Ok();
-        }
-
-        [HttpDelete("items/{productId}")]
-        public async Task<ActionResult<Cart>> RemoveItem(string customerId, string productId)
-        {
-            //_logger.LogInformation("Removing {productId} from cart for customer {customerId}", productId, customerId);
-            await _basketService.RemoveItemAsync(customerId, productId);
-            return Ok();
-        }
-
-        // PUB/SUB: validate-basket → BasketValidated
-        [Topic("bookpubsub", "validate-basket")]
-        [HttpPost("/validate-basket")]
-        public async Task<IActionResult> ValidateBasket([FromBody] BasketMessage message)
-        {
-            _logger.LogInformation("Validating basket for workflow {workflowId}", message.WorkflowId);
-
-            // Dummy validation
-            var result = new OrderDto
-            {
-                OrderId = message.OrderId,
-                Customer = message.Customer,
-                Items = message.Items,
-                TotalPrice = message.TotalPrice,
-                Status = "validated"
-            };
-
-            await _daprClient.PublishEventAsync("pubsub", "BasketValidated", result);
-
-            _logger.LogInformation("Published BasketValidated for order {OrderId}", message.OrderId);
-            return Ok();
-        }
+        _basketService = basketService;
+        _logger = logger;
+        _daprClient = daprClient;
     }
-}
 
-        //[HttpPost("checkout")]
-        //public async Task<ActionResult> Checkout(string customerId)
-        //{
-        //    //_logger.LogInformation("Checking out cart for customer {customerId}", customerId);
-        //   await _basketService.Checkout(customerId);
-        //    //await _daprClient.PublishEventAsync(PUBSUB_NAME, TOPIC_NAME, customerId);
-        //    return Ok();
-        //}
+    // ✅ Hent kurv – bruger customerId fra URL
+    [HttpGet("{customerId}")]
+    public async Task<ActionResult<Cart>> GetCart(string customerId)
+    {
+        var cart = await _basketService.GetCartAsync(customerId);
+        return cart == null ? NotFound() : Ok(cart);
+    }
+
+    // ✅ Læg i kurv – bruger customerId fra URL
+    [HttpPost("{customerId}/items")]
+    public async Task<IActionResult> AddItem(string customerId, [FromBody] CartItemDto item)
+    {
+        var model = new CartItems
+        {
+            ProductId = item.ProductId,
+            Name = item.Name,
+            Quantity = item.Quantity,
+            UnitPrice = item.UnitPrice
+        };
+
+        await _basketService.AddItemAsync(customerId, model);
+        return Ok();
+    }
+
+    // ✅ Fjern fra kurv – bruger customerId og productId fra URL
+    [HttpDelete("{customerId}/items/{productId}")]
+    public async Task<IActionResult> RemoveItem(string customerId, string productId)
+    {
+        await _basketService.RemoveItemAsync(customerId, productId);
+        return Ok();
+    }
+
+    [HttpPost("checkout")]
+    public async Task<IActionResult> Checkout([FromBody] CustomerDto customerDto)
+    {
+        var cart = await _basketService.GetCartAsync(customerDto.CustomerId);
+
+        if (cart == null || cart.Items == null || !cart.Items.Any())
+        {
+            return BadRequest("Cart is empty.");
+        }
+
+        if (cart.Customer == null)
+        {
+            cart.Customer = new Customer
+            {
+                CustomerId = customerDto.CustomerId,
+                Name = customerDto.Name,
+                Email = customerDto.Email,
+                Address = customerDto.Address
+            };
+        }
+
+        var orderId = Guid.NewGuid().ToString();
+
+        var message = new BasketMessage
+        {
+            OrderId = orderId,
+            Customer = customerDto,
+            Items = cart.Items.Select(item => new CartItemDto
+            {
+                ProductId = item.ProductId,
+                Name = item.Name,
+                Quantity = item.Quantity,
+                UnitPrice = item.UnitPrice
+            }).ToList(),
+            TotalPrice = cart.Items.Sum(i => i.Quantity * i.UnitPrice),
+            WorkflowId = $"wf-{Guid.NewGuid()}"
+        };
+
+        await _daprClient.PublishEventAsync("bookpubsub", "start-workflow", message);
+
+        _logger.LogInformation(" Sends BasketMessage: OrderId={OrderId}, Items={ItemCount}, Customer={Customer}",
+    message.OrderId, message.Items.Count, message.Customer.Name);
+
+        await _daprClient.PublishEventAsync("bookpubsub", "validate-basket", message);
+
+        return Ok(new { orderId });
+    }
+
+    [HttpPut("{customerId}/items")]
+    public async Task<IActionResult> UpdateItem(string customerId, [FromBody] CartItemDto item)
+    {
+        var cart = await _basketService.GetCartAsync(customerId);
+        if (cart == null)
+        {
+            return NotFound("Cart not found.");
+        }
+
+        var existingItem = cart.Items.FirstOrDefault(i => i.ProductId == item.ProductId);
+        if (existingItem == null)
+        {
+            return NotFound("Item not found in cart.");
+        }
+
+        existingItem.Quantity = item.Quantity;
+        await _basketService.UpdateCartAsync(customerId, cart);
+
+        return Ok();
+    }
+
+
+
+
+
+    // Dapr subscription
+    //[Topic("bookpubsub", "validate-basket")]
+    //[HttpPost("/validate-basket")]
+    //public async Task<IActionResult> ValidateBasket([FromBody] BasketMessage message)
+    //{
+    //    _logger.LogInformation("Validating basket for workflow {workflowId}", message.WorkflowId);
+
+    //    var result = new OrderDto
+    //    {
+    //        OrderId = message.OrderId,
+    //        Customer = message.Customer,
+    //        Items = message.Items,
+    //        TotalPrice = message.TotalPrice,
+    //        Status = "validated"
+    //    };
+
+    //    await _daprClient.PublishEventAsync("bookpubsub", "BasketValidated", result);
+
+    //    _logger.LogInformation("Published BasketValidated for order {OrderId}", message.OrderId);
+    //    return Ok();
+    //}
+}

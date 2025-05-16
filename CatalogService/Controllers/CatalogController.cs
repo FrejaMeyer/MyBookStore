@@ -4,6 +4,8 @@ using Catalog.Models;
 
 namespace Catalog.Controllers
 {
+    [ApiController]
+    [Route("api/catalog")]
     public class CatalogController : ControllerBase
     {
         private readonly ICatalogService _catalogService;
@@ -43,9 +45,5 @@ namespace Catalog.Controllers
             return NoContent();
                 
         }
-
-
-
-
     }
 }

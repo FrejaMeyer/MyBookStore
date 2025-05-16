@@ -18,7 +18,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\BookOrder\BookOrder.csproj" />
-    <ProjectReference Include="..\..\Frontend\Frontend.csproj" />
     <ProjectReference Include="..\..\Workflow\Workflow.csproj" />
   </ItemGroup>
 

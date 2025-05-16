@@ -22,6 +22,22 @@ namespace Workflow.Controllers
             _logger = logger;
         }
 
+        [Topic("bookpubsub", "start-workflow")]
+        [HttpPost("events/start-workflow")]
+        public async Task<IActionResult> StartWorkflowViaPubSub([FromBody] Order order)
+        {
+            var instanceId = $"book-order-{order.OrderId}";
+            await _daprClient.StartWorkflowAsync(
+                workflowComponent: "bookworkflow",
+                workflowName: nameof(BookOrderingWorkflow),
+                input: order,
+                instanceId: instanceId);
+
+            _logger.LogInformation("Started workflow via pubsub for {OrderId}", order.OrderId);
+            return Ok();
+        }
+
+
         // 1️⃣ Start workflow
         [HttpPost("start-order")]
         public async Task<IActionResult> StartOrder([FromBody] Order order)
@@ -53,7 +69,7 @@ namespace Workflow.Controllers
         }
 
         // 2️⃣ Ekstern event: BasketValidated
-        [Topic("pubsub", "BasketValidated")]
+        [Topic("bookpubsub", "BasketValidated")]
         [HttpPost("events/basket-validated")]
         public async Task<IActionResult> BasketValidated([FromBody] Order result)
         {
@@ -66,7 +82,7 @@ namespace Workflow.Controllers
         }
 
         // 3️⃣ Ekstern event: OrderCreated
-        [Topic("pubsub", "OrderCreated")]
+        [Topic("bookpubsub", "OrderCreated")]
         [HttpPost("events/order-created")]
         public async Task<IActionResult> OrderCreated([FromBody] Order result)
         {
@@ -79,7 +95,7 @@ namespace Workflow.Controllers
         }
 
         // 4️⃣ Ekstern event: PaymentProcessed
-        [Topic("pubsub", "PaymentProcessed")]
+        [Topic("bookpubsub", "PaymentProcessed")]
         [HttpPost("events/payment-processed")]
         public async Task<IActionResult> PaymentProcessed([FromBody] Order result)
         {
@@ -91,7 +107,7 @@ namespace Workflow.Controllers
             return Ok();
         }
 
-        [Topic("pubsub", "InventoryChecked")]
+        [Topic("bookpubsub", "InventoryChecked")]
         [HttpPost("events/inventory-checked")]
         public async Task<IActionResult> InventoryChecked([FromBody] InventoryResultMessage result)
         {

@@ -1,0 +1,70 @@
+﻿@page "/order/{orderId}"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@using Shared.Dto;
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components
+
+<h3>Ordrebekræftelse</h3>
+
+@if (order == null)
+{
+    <p>Indlæser ordredetaljer...</p>
+}
+else
+{
+    <p><strong>Ordre-ID:</strong> @order.OrderId</p>
+    <p><strong>Navn:</strong> @order.Customer.Name</p>
+    <p><strong>Email:</strong> @order.Customer.Email</p>
+    <p><strong>Adresse:</strong> @order.Customer.Address</p>
+
+    <table class="table mt-3">
+        <thead>
+            <tr>
+                <th>Produkt</th>
+                <th>Antal</th>
+                <th>Pris</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in order.Items)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>@item.Quantity</td>
+                    <td>@item.UnitPrice.ToString("C")</td>
+                    <td>@(item.Quantity* item.UnitPrice).ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3"><strong>Total:</strong></td>
+                <td><strong>@order.TotalPrice.ToString("C")</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <button class="btn btn-primary" @onclick="GoHome">Til forsiden</button>
+}
+
+@code {
+    [Parameter]
+    public string? orderId { get; set; }
+
+    private OrderDto? order;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!string.IsNullOrEmpty(orderId))
+        {
+            order = await Http.GetFromJsonAsync<OrderDto>($"orderservice/method/order/{orderId}");
+        }
+    }
+
+    private void GoHome()
+    {
+        Navigation.NavigateTo("/");
+    }
+}

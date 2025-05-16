@@ -1,0 +1,141 @@
+﻿@using Services
+@using System.Text.Json
+@inject BasketClientService BasketService
+@inject CartStateService CartState
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">Frontend</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    <nav class="nav flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+
+        <!-- Books dropdown -->
+        <div class="nav-item px-3">
+            <a class="nav-link" href="#" @onclick="ToggleGenres">
+                Books @if (showGenres) {
+                <span>&#9650;</span>
+                                } else
+                {
+
+                    <span>&#9660;</span>
+                }
+            </a>
+
+            @if (showGenres)
+            {
+                <ul class="dropdown-menu dropdown-menu-dark show" style="position: static;">
+                    <li>
+                        <a class="dropdown-item" @onclick="NavigateToAllBooks"><strong>All genres</strong></a>
+                    </li>
+                    <li><hr class="dropdown-divider" /></li>
+
+                    @if (genres == null)
+                    {
+                        <li><span class="dropdown-item-text">Loading...</span></li>
+                    }
+                    else
+                    {
+                        @foreach (var genre in genres)
+                        {
+                            <li>
+                                <a class="dropdown-item" @onclick="@(() => NavigateToGenre(genre))">@genre</a>
+                            </li>
+                        }
+                    }
+                </ul>
+            }
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="cart">
+                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>
+                Cart (@CartState.ItemCount)
+            </NavLink>
+        </div>
+    </nav>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private List<string> genres;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // cart
+        CartState.OnChange += StateHasChanged;
+        var cart = await BasketService.GetCartAsync();
+        var count = cart?.Items?.Sum(i => i.Quantity) ?? 0;
+        CartState.SetCount(count);
+
+        // genres
+        try
+        {
+            var response = await Http.GetAsync("catalogservice/method/api/catalog");
+            var content = await response.Content.ReadAsStringAsync();
+
+            var books = JsonSerializer.Deserialize<List<Book>>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            genres = books?
+                .Select(b => b.Genre)
+                .Where(g => !string.IsNullOrWhiteSpace(g))
+                .Distinct()
+                .OrderBy(g => g)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Kunne ikke hente genrer: " + ex.Message);
+            genres = new List<string>();
+        }
+    }
+
+    private void NavigateToGenre(string genre)
+    {
+        Navigation.NavigateTo($"/books/genre/{Uri.EscapeDataString(genre)}");
+    }
+
+    private class Book
+    {
+        public string Genre { get; set; }
+    }
+
+    public void Dispose()
+    {
+        CartState.OnChange -= StateHasChanged;
+    }
+
+    private bool showGenres = false;
+
+    private void ToggleGenres()
+    {
+        showGenres = !showGenres;
+    }
+
+    private void NavigateToAllBooks()
+    {
+        showGenres = false;
+        Navigation.NavigateTo("/books");
+    }
+}

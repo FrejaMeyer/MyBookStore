@@ -1,0 +1,138 @@
+﻿@page "/cart"
+@using Shared.Dto
+@using Services
+@inject BasketClientService BasketService
+@inject CartStateService CartState
+@inject NavigationManager Navigation
+
+<h2>Your cart</h2>
+
+@if (cart == null)
+{
+    <p>Loading cart...</p>
+}
+else if (!cart.Items.Any())
+{
+    <p>Cart is empty.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quanity</th>
+                <th>Price</th>
+                <th>Total</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in cart.Items)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td class="d-flex align-items-center">
+    <button class="btn btn-outline-secondary btn-sm me-2"
+            @onclick="() => UpdateQuantity(item, -1)"
+            disabled="@(item.Quantity <= 1)">−</button>
+
+    <span class="px-2">@item.Quantity</span>
+
+    <button class="btn btn-outline-secondary btn-sm ms-2"
+            @onclick="() => UpdateQuantity(item, 1)">+</button>
+</td>
+
+                    <td>@item.UnitPrice kr</td>
+                    <td>@((item.Quantity* item.UnitPrice).ToString("F2")) kr</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" @onclick="() => Remove(item.ProductId, item.Quantity)">Remove</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="d-flex justify-content-between align-items-center mt-4">
+    <h4 class="mb-0">
+        Total: <span class="text-success fw-bold">
+            @cart.Items.Sum(i => i.Quantity * i.UnitPrice).ToString("F2") kr
+        </span>
+    </h4>
+
+    <button class="btn btn-success btn-lg" @onclick="Checkout">
+       Check Out
+    </button>
+</div>
+}
+
+@code {
+    private CartDto? cart;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCart();
+    }
+
+    private async Task LoadCart()
+    {
+        cart = await BasketService.GetCartAsync();
+        var total = cart?.Items?.Sum(i => i.Quantity) ?? 0;
+        CartState.SetCount(total);
+    }
+
+    private async Task Remove(string productId, int quantity)
+    {
+        await BasketService.RemoveFromCartAsync(productId);
+        await LoadCart();
+        CartState.Decrement(quantity);
+    }
+
+    private async Task Checkout()
+    {
+        var customer = new CustomerDto
+        {
+            Name = "Ukendt kunde",
+            Email = "ukendt@example.com",
+            Address = "Ukendt adresse"
+            // CustomerId udeladt — sættes i backend
+        };
+
+        var orderId = await BasketService.CheckoutAsync(customer);
+
+        if (orderId != null)
+        {
+            CartState.SetCount(0);
+            Navigation.NavigateTo($"/checkout");
+        }
+        else
+        {
+
+        }
+
+    }
+
+    private async Task UpdateQuantity(CartItemDto item, int change)
+{
+    var newQty = item.Quantity + change;
+
+    if (newQty <= 0)
+    {
+        await Remove(item.ProductId, item.Quantity);
+        return;
+    }
+
+    var updatedItem = new CartItemDto
+    {
+        ProductId = item.ProductId,
+        Name = item.Name,
+        Quantity = newQty,
+        UnitPrice = item.UnitPrice
+    };
+
+    await BasketService.UpdateCartAsync(updatedItem);
+    await LoadCart();
+}
+
+}
+

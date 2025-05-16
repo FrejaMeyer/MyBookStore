@@ -19,7 +19,7 @@ namespace Workflow.Activites
         {
             _logger.LogInformation("Validating basket for order {OrderId}", order.OrderId);
             var message = MessageHelper.FillMessage<BasketMessage>(context, order);
-            await _daprClient.PublishEventAsync("pubsub", "validate-basket", message);
+            await _daprClient.PublishEventAsync("bookpubsub", "validate-basket", message);
             return null;
         }
     }

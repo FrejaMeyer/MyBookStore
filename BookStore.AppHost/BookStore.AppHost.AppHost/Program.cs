@@ -16,7 +16,9 @@ builder.AddProject<BookOrder>("bookorderservice")
 
 builder.AddProject<Projects.Workflow>("workflow");
 
+
 builder.AddProject<Projects.Frontend>("frontend");
+
 
 builder.Build().Run();
 
