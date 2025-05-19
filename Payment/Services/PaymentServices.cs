@@ -36,6 +36,8 @@ namespace Payment.Services
                 Message = success ? "Payment successful." : "Payment declined."
             };
 
+            _logger.LogInformation(result.OrderId, result.Success, result.Message);
+
             await _daprClient.SaveStateAsync(StoreStore, paymentRequest.OrderId, result);
             await _daprClient.PublishEventAsync(PubSub, PaymentTopic, result);
             _logger.LogInformation($"Payment processed for OrderId: {paymentRequest.OrderId}, Success: {success}");

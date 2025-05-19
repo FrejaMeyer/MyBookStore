@@ -25,6 +25,7 @@ namespace BookOrder.Controllers
             
         }
 
+        [Topic("bookpubsub", "OrderCreated")]
         [HttpPost]
         public async Task<ActionResult<Order>> CreateOrder(Order order)
         {
@@ -48,6 +49,8 @@ namespace BookOrder.Controllers
         }
 
 
+
+
         [HttpDelete("{orderId}")]
         public async Task<ActionResult<string>> DeleteOrder(string orderId)
         {
@@ -62,7 +65,7 @@ namespace BookOrder.Controllers
             return Ok(orderId);
         }
 
-        [Topic("bookpubsub", "OrderCreated")]
+       // [Topic("bookpubsub", "OrderCreated")]
         [HttpPost("/orders-sub")]
         public async Task<IActionResult> HandleOrderUpdate(CloudEvent<Order> cloudEvent)
         {

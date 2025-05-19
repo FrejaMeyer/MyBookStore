@@ -1,7 +1,8 @@
 ﻿using Frontend.Services;
 using Shared.Dto;
-using System.Net.Http;
 using System.Net.Http.Json;
+
+
 
 
 namespace Frontend.Services;
@@ -48,6 +49,7 @@ public class BasketClientService
         {
             // Sikrer at customerId bliver sat korrekt
             customer.CustomerId = _session.GetCustomerId();
+            //customer.CustomerId = Guid.NewGuid().ToString();
 
             var response = await _http.PostAsJsonAsync("basketservice/method/basket/checkout", customer);
             var responseBody = await response.Content.ReadAsStringAsync();

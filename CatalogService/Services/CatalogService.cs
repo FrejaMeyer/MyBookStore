@@ -42,9 +42,7 @@ namespace Catalog.Services
 
         public async Task<Book?> GetBookByIdAsync(string id) => await _dbContext.Books.FindAsync(id);
 
-
         public async Task<List<Book>> GetBooksAsync() => await _dbContext.Books.ToListAsync();
-
 
         public async Task UpdateAsync(Book book)
         {

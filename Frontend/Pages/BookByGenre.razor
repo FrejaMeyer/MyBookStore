@@ -6,9 +6,38 @@
 
 <h3>Books - @Genre</h3>
 
-@if (books == null)
+ <hr class="my-5" />
+    <h4 class="text-start mb-3">Find a book</h4>
+
+    <input class="form-control mb-3" placeholder="Search by title or author..." @bind="searchQuery" />
+
+    @if (!string.IsNullOrWhiteSpace(searchQuery))
+    {
+    if (filteredBooks?.Any() == true)
+    {
+        <div class="row">
+            @foreach (var book in filteredBooks)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow" style="cursor: pointer;" @onclick="() => OpenBook(book.Id)">
+                        <img src="@book.ImageUrl" class="card-img-top p-2"
+                             style="height: 300px; width: 100%; object-fit: contain; background-color: white;" />
+                        <div class="card-body">
+                            <h5 class="card-title">@book.Title</h5>
+                            <p class="card-text text-muted">by @book.Author</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(searchQuery))
+    {
+        <p>No results found.</p>
+    }
+} else if (books == null)
 {
-    <p>Loading books...</p>
+    <p>Loading books</p>
 }
 else
 {
@@ -19,7 +48,7 @@ else
                 <div class="col">
                     <div class="card h-100 shadow-sm">
                         <a @onclick="@(() => NavigateToBook(book.Id))" style="cursor: pointer">
-                        <img src="@book.ImageUrl" class="card-img-top p-2" style="height: 300px; width: 100%; object-fit: contain; background-color: white;" />
+                            <img src="@book.ImageUrl" class="card-img-top p-2" style="height: 300px; width: 100%; object-fit: contain; background-color: white;" />
                         </a>
                         <div class="card-body d-flex flex-column">
                             <h6 class="card-title">@book.Title</h6>
@@ -32,6 +61,9 @@ else
         </div>
     </div>
 }
+
+
+
 
 @code {
     [Parameter]
@@ -69,4 +101,21 @@ else
         public int StockQuantity { get; set; }
         public string ImageUrl { get; set; }
     }
+
+    private List<Book>? allBooks;
+    private List<Book>? randomBooks;
+    private string searchQuery = string.Empty;
+
+    private void OpenBook(string id)
+    {
+        Navigation.NavigateTo($"/book/{id}");
+    }
+
+    private IEnumerable<Book> filteredBooks => string.IsNullOrWhiteSpace(searchQuery)
+        ? null
+        : books?.Where(book =>
+            (!string.IsNullOrEmpty(book.Title) && book.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
+            (!string.IsNullOrEmpty(book.Author) && book.Author.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+        );
+
 }

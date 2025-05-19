@@ -7,12 +7,14 @@
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">Frontend</a>
+        <a class="navbar-brand" href="">MyBookStore</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
     </div>
 </div>
+
+
 
 <div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
     <nav class="nav flex-column">
@@ -22,23 +24,32 @@
             </NavLink>
         </div>
 
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="cart">
+                <span class="bi bi-cart-nav-menu" aria-hidden="true"></span> Cart (@CartState.ItemCount)
+            </NavLink>
+        </div>
+
+
         <!-- Books dropdown -->
         <div class="nav-item px-3">
             <a class="nav-link" href="#" @onclick="ToggleGenres">
-                Books @if (showGenres) {
-                <span>&#9650;</span>
-                                } else
+                <span class="bi bi-book-nav-menu" aria-hidden="true"></span> Books
+                @if (showGenres) 
                 {
-
+                    <span>&#9650;</span>
+                }
+                else
+                {
                     <span>&#9660;</span>
                 }
             </a>
 
             @if (showGenres)
             {
-                <ul class="dropdown-menu dropdown-menu-dark show" style="position: static;">
+                <ul class="sidebar nav flex-column text-white ps-4 pe-3 py-2" style="margin: 0;">
                     <li>
-                        <a class="dropdown-item" @onclick="NavigateToAllBooks"><strong>All genres</strong></a>
+                        <a class="dropdown-item" @onclick="NavigateToAllBooks"><strong>All Books</strong></a>
                     </li>
                     <li><hr class="dropdown-divider" /></li>
 
@@ -58,12 +69,7 @@
                 </ul>
             }
         </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="cart">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>
-                Cart (@CartState.ItemCount)
-            </NavLink>
-        </div>
+     
     </nav>
 </div>
 

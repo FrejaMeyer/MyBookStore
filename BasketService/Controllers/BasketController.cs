@@ -13,6 +13,7 @@ public class BasketController : ControllerBase
     private readonly IBasketService _basketService;
     private readonly ILogger<BasketController> _logger;
     private readonly DaprClient _daprClient;
+    private readonly HttpClient _http;
 
     public BasketController(IBasketService basketService, ILogger<BasketController> logger, DaprClient daprClient)
     {
@@ -91,7 +92,8 @@ public class BasketController : ControllerBase
             WorkflowId = $"wf-{Guid.NewGuid()}"
         };
 
-        await _daprClient.PublishEventAsync("bookpubsub", "start-workflow", message);
+          await _daprClient.PublishEventAsync("bookpubsub", "start-workflow", message);
+       // await _http.PostAsJsonAsync("workflow/start-workflow", message);
 
         _logger.LogInformation(" Sends BasketMessage: OrderId={OrderId}, Items={ItemCount}, Customer={Customer}",
     message.OrderId, message.Items.Count, message.Customer.Name);

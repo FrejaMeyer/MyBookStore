@@ -28,7 +28,7 @@ namespace Payment.Controllers
         }
 
         [Topic("bookpubsub", "payment-request")]
-        [HttpPost("events/payment-request")]
+        [HttpPost("method/payment-request")]
         public async Task<IActionResult> OnPaymentRequest([FromBody] PaymentRequest paymentRequest)
         {
             var result = await _paymentServices.ProcessPaymentAsync(paymentRequest);

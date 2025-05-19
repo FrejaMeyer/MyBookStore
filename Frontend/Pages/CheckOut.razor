@@ -51,14 +51,18 @@ else
         <div class="mb-2">
             <label>Name:</label>
             <InputText class="form-control" @bind-Value="customer.Name" />
+            <ValidationMessage For="@(() => customer.Name)" />
+
         </div>
         <div class="mb-2">
             <label>Email:</label>
             <InputText class="form-control" @bind-Value="customer.Email" />
+            <ValidationMessage For="@(() => customer.Email)" />
         </div>
         <div class="mb-2">
             <label>Address:</label>
             <InputText class="form-control" @bind-Value="customer.Address" />
+            <ValidationMessage For="@(() => customer.Address)" />
         </div>
 
         <button class="btn btn-primary" type="submit" disabled="@isProcessing">Confirm and pay</button>
