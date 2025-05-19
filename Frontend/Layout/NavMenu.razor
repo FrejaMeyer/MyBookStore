@@ -33,7 +33,7 @@
 
         <!-- Books dropdown -->
         <div class="nav-item px-3">
-            <a class="nav-link" href="#" @onclick="ToggleGenres">
+            <a class="nav-link" href="books" @onclick="ToggleGenres">
                 <span class="bi bi-book-nav-menu" aria-hidden="true"></span> Books
                 @if (showGenres) 
                 {
@@ -48,9 +48,7 @@
             @if (showGenres)
             {
                 <ul class="sidebar nav flex-column text-white ps-4 pe-3 py-2" style="margin: 0;">
-                    <li>
-                        <a class="dropdown-item" @onclick="NavigateToAllBooks"><strong>All Books</strong></a>
-                    </li>
+
                     <li><hr class="dropdown-divider" /></li>
 
                     @if (genres == null)
