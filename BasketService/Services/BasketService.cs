@@ -16,7 +16,7 @@ namespace Basket.Services
     {
         private readonly DaprClient _daprClient;
         private readonly ILogger<BasketService> _logger;
-        private readonly string _stateStoreName = "bookstatestore";
+        private readonly string _statestore = "bookstatestore";
         private readonly string _pubsubName = "bookpubsub";
         private readonly string _topicName = "checkout-request";
 
@@ -29,7 +29,7 @@ namespace Basket.Services
         public async Task<Cart> GetCartAsync(string customerId)
         {
             _logger.LogInformation("Getting cart for customer {customerId}", customerId);
-            var cart = await _daprClient.GetStateAsync<Cart>(_stateStoreName, customerId);
+            var cart = await _daprClient.GetStateAsync<Cart>(_statestore, customerId);
             return cart ?? new Cart
             {
                 Customer = new Customer { CustomerId = customerId },
@@ -39,7 +39,7 @@ namespace Basket.Services
 
         public async Task UpdateCartAsync(string customerId, Cart cart)
         {
-            await _daprClient.SaveStateAsync(_stateStoreName, customerId, cart);
+            await _daprClient.SaveStateAsync(_statestore, customerId, cart);
             _logger.LogInformation("Cart updated for customer {customerId} with {ItemCount} items", customerId, cart.Items.Count);
         }
 
@@ -63,7 +63,7 @@ namespace Basket.Services
                 _logger.LogInformation("Added item {ProductId} to cart for customer {customerId}", newItem.ProductId, customerId);
             }
 
-            await _daprClient.SaveStateAsync(_stateStoreName, customerId, cart);
+            await _daprClient.SaveStateAsync(_statestore, customerId, cart);
         }
 
 
@@ -74,7 +74,7 @@ namespace Basket.Services
             if (itemToRemove != null)
             {
                 cart.Items.Remove(itemToRemove);
-                await _daprClient.SaveStateAsync(_stateStoreName, customerId, cart);
+                await _daprClient.SaveStateAsync(_statestore, customerId, cart);
                 _logger.LogInformation("Removed item {productId} from cart for customer {customerId}", productId, customerId);
             }
         }

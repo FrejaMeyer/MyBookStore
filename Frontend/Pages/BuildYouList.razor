@@ -1,0 +1,199 @@
+﻿@page "/buildyourlist"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@using System.Text.Json
+
+<h3 class="text-center">Build your own list</h3>
+
+<!-- Filter & Søg -->
+<div class="container mb-4">
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            <input class="form-control mb-2" placeholder="Search after titel or author"
+            @bind="searchQuery" @oninput="ApplyFilters" />
+        </div>
+        <div class="col-md-3">
+            <select class="form-select mb-2" @bind="selectedGenre" 
+            @bind:after="ApplyFilters">
+                <option value="">All genres</option>
+                @foreach (var genre in genres ?? new())
+                {
+                    <option value="@genre">@genre</option>
+                }
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Filtreret bogliste -->
+<div class="container mb-5">
+    <div class="row row-cols-1 row-cols-md-4 g-4">
+        @foreach (var book in filteredBooks)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <img src="@book.ImageUrl" class="card-img-top" style="height: 200px; object-fit: contain;" />
+                    <div class="card-body">
+                        <h5 class="card-title">@book.Title</h5>
+                        <p class="card-text">@book.Author</p>
+                        <button class="btn btn-sm btn-outline-primary" @onclick="@(() => AddToCustomList(book))" disabled="@userList.Contains(book)">
+                            Add to list
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Min valgte bogliste -->
+@if (userList.Any())
+{
+    <h4 class="text-center">Your list (@userList.Count)</h4>
+    <div class="d-flex justify-content-center mb-3">
+        <button class="btn btn-success" @onclick="PickRandomFromUserList">Get random book</button>
+    </div>
+
+    <div class="container">
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+            @foreach (var book in userList)
+            {
+                <div class="col">
+                    <div class="card h-100 border-success">
+                        <img src="@book.ImageUrl" class="card-img-top" style="height: 150px; object-fit: contain;" />
+                        <div class="card-body">
+                            <h6 class="card-title">@book.Title</h6>
+                            <p class="card-text">@book.Author</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<!-- Vist tilfældig bog -->
+@if (randomBook != null)
+{
+    <hr />
+    <h4 class="text-center">Your next read is:</h4>
+    <div class="d-flex justify-content-center">
+        <div class="card shadow p-3" style="width: 300px;">
+            <img src="@randomBook.ImageUrl" alt="Book Cover" class="card-img-top mb-3" style="height: 300px; object-fit: contain;" />
+            <div class="card-body">
+                <h5 class="card-title">@randomBook.Title</h5>
+                <p class="card-text"><strong>Author:</strong> @randomBook.Author</p>
+                <p class="card-text"><strong>Genre:</strong> @randomBook.Genre</p>
+                <p class="card-text"><strong>Price:</strong> @randomBook.Price kr</p>
+            </div>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger text-center mt-3">@errorMessage</div>
+}
+
+@code {
+    private List<Book>? books;
+    private List<Book> filteredBooks = new();
+    private List<Book> userList = new();
+    private Book? randomBook;
+
+    private List<string>? genres;
+    private string? selectedGenre;
+    private string? searchQuery;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBooks();
+        ExtractGenres();
+        ApplyFilters();
+    }
+
+    private async Task LoadBooks()
+    {
+        try
+        {
+            var response = await Http.GetAsync("catalogservice/method/api/catalog");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                books = JsonSerializer.Deserialize<List<Book>>(content, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                }) ?? new List<Book>();
+            }
+            else
+            {
+                errorMessage = $"Fejl ved API: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Noget gik galt: " + ex.Message;
+        }
+    }
+
+    private void ExtractGenres()
+    {
+        genres = books?
+            .Where(b => !string.IsNullOrWhiteSpace(b.Genre))
+            .Select(b => b.Genre)
+            .Distinct()
+            .OrderBy(g => g)
+            .ToList();
+    }
+
+    private void ApplyFilters()
+    {
+        if (books == null) return;
+
+        filteredBooks = books
+            .Where(b =>
+                (string.IsNullOrWhiteSpace(searchQuery) ||
+                 b.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                 b.Author.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrWhiteSpace(selectedGenre) || b.Genre == selectedGenre)
+            )
+            .ToList();
+    }
+
+    private void AddToCustomList(Book book)
+    {
+        if (!userList.Contains(book))
+        {
+            userList.Add(book);
+        }
+    }
+
+    private void PickRandomFromUserList()
+    {
+        if (userList.Any())
+        {
+            var rng = new Random();
+            int index = rng.Next(userList.Count);
+            randomBook = userList[index];
+        }
+    }
+
+    private void NavigateToBookDetails(string id)
+    {
+        
+        Navigation.NavigateTo($"/book/{id}");
+    }
+
+    public class Book
+    {
+        public string Id { get; set; }
+        public string Title { get; set; }
+        public string Genre { get; set; }
+        public string Author { get; set; }
+        public double Price { get; set; }
+        public int StockQuantity { get; set; }
+        public string ImageUrl { get; set; }
+    }
+}

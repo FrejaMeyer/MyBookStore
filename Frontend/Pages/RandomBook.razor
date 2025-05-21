@@ -1,0 +1,139 @@
+﻿@page "/randombook"
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@using System.Text.Json
+
+<h3 class="text-center">Random book generator</h3>
+<h4 class="text-center">We have made it easy for you, to decide your next read.</h4>
+<h4 class="text-center">Just choose genre, or all genre and click the buttom. Easy!</h4>
+
+@if (genres == null)
+{
+    <p class="text-center">Loading genres...</p>
+}
+else
+{
+    <div class="d-flex justify-content-center mb-3">
+        <select class="form-select w-auto me-2" @bind="selectedGenre">
+            <option value="">All genres</option>
+            @foreach (var genre in genres)
+            {
+                <option value="@genre">@genre</option>
+            }
+        </select>
+        <button class="btn btn-primary" @onclick="OnGetRandomBookClick" disabled="@(books == null || books.Count == 0)">
+         Random book
+        </button>
+        <span class="text-primary" style="cursor: pointer;" @onclick="OnTextClick">
+            or build your own list to generate from
+        </span>
+    </div>
+}
+
+@if (randomBook != null)
+{
+    <div class="d-flex justify-content-center">
+        <div class="card shadow p-3" style="width: 300px; cursor: pointer;" @onclick="NavigateToBookDetails">
+            <img src="@randomBook.ImageUrl" alt="Book Cover" class="card-img-top mb-3" style="height: 300px; object-fit: contain;" />
+            <div class="card-body">
+                <h5 class="card-title">@randomBook.Title</h5>
+                <p class="card-text"><strong>Author:</strong> @randomBook.Author</p>
+                <p class="card-text"><strong>Genre:</strong> @randomBook.Genre</p>
+                <p class="card-text"><strong>Price:</strong> @randomBook.Price kr</p>
+            </div>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger text-center mt-3">@errorMessage</div>
+}
+
+@code {
+    private List<Book>? books;
+    private List<string>? genres;
+    private string? selectedGenre;
+    private Book? randomBook;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadBooks();
+        ExtractGenres();
+    }
+
+    private async Task LoadBooks()
+    {
+        try
+        {
+            var response = await Http.GetAsync("catalogservice/method/api/catalog");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                books = JsonSerializer.Deserialize<List<Book>>(content, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+            }
+            else
+            {
+                errorMessage = $"Fejl ved API: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Noget gik galt: " + ex.Message;
+        }
+    }
+
+    private void ExtractGenres()
+    {
+        genres = books?
+            .Where(b => !string.IsNullOrWhiteSpace(b.Genre))
+            .Select(b => b.Genre)
+            .Distinct()
+            .OrderBy(g => g)
+            .ToList();
+    }
+
+    private void NavigateToBookDetails()
+    {
+        if (randomBook != null)
+        {
+            Navigation.NavigateTo($"/book/{randomBook.Id}");
+        }
+    }
+
+    private void OnTextClick()
+    {
+        Navigation.NavigateTo("/buildyourlist");
+    }
+
+    private void OnGetRandomBookClick()
+    {
+        List<Book> filtered = books;
+
+        if (!string.IsNullOrWhiteSpace(selectedGenre))
+        {
+            filtered = books.Where(b => b.Genre == selectedGenre).ToList();
+        }
+
+        var rng = new Random();
+        int index = rng.Next(filtered.Count);
+        randomBook = filtered[index];
+  
+    }
+
+    public class Book
+    {
+        public string Id { get; set; }
+        public string Title { get; set; }
+        public string Genre { get; set; }
+        public string Author { get; set; }
+        public double Price { get; set; }
+        public int StockQuantity { get; set; }
+        public string ImageUrl { get; set; }
+    }
+}

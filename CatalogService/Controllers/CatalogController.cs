@@ -26,8 +26,8 @@ namespace Catalog.Controllers
             return book is null ? NotFound() : Ok(book);
         }
 
-        [HttpPost]
-        public async Task<ActionResult> Update(string id, Book book)
+        [HttpPost("{id}")]
+        public async Task<ActionResult> Update(string id, [FromBody]Book book)
         {
             if (id != book.Id)
             {

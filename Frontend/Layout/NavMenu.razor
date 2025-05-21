@@ -67,6 +67,28 @@
                 </ul>
             }
         </div>
+
+        <div class="nav-item px-3">
+            <a class="nav-link" href="randombook" @onclick="ToggleGeneratorMenu">
+                <span class="bi bi-book-nav-menu" aria-hidden="true"></span> Book Generator
+                @if (showGeneratorMenu)
+                {
+                    <span>&#9650;</span>
+                }
+                else
+                {
+                    <span>&#9660;</span>
+                }
+            </a>
+
+            @if (showGeneratorMenu)
+            {
+                <ul class="sidebar nav flex-column text-white ps-4 pe-3 py-2" style="margin: 0;">
+                    <li><a class="dropdown-item" href="buildyourlist">Build you own list</a></li>
+                </ul>
+            }
+        </div>
+
      
     </nav>
 </div>
@@ -77,6 +99,13 @@
 
     private List<string> genres;
 
+    private bool showGeneratorMenu = false;
+
+    private void ToggleGeneratorMenu()
+    {
+        showGeneratorMenu = !showGeneratorMenu;
+    }
+
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
@@ -84,12 +113,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // cart
-        CartState.OnChange += StateHasChanged;
-        var cart = await BasketService.GetCartAsync();
-        var count = cart?.Items?.Sum(i => i.Quantity) ?? 0;
-        CartState.SetCount(count);
-
         // genres
         try
         {
@@ -113,6 +136,12 @@
             Console.WriteLine("Kunne ikke hente genrer: " + ex.Message);
             genres = new List<string>();
         }
+
+        // cart
+        CartState.OnChange += StateHasChanged;
+        var cart = await BasketService.GetCartAsync();
+        var count = cart?.Items?.Sum(i => i.Quantity) ?? 0;
+        CartState.SetCount(count);
     }
 
     private void NavigateToGenre(string genre)

@@ -15,6 +15,7 @@ Content-Type: application/json
 {
     "orderId": "123",
     "customer": {
+       "customerId": "cust-001",
         "name": "John Doe",
         "email": "JohnD@mail.com",
         "address": "123 Main St"
@@ -22,19 +23,19 @@ Content-Type: application/json
     "items": [
       {
         "productId": "book-001",
-        "productName": "The Great Gatsby",
+        "name": "The Great Gatsby",
         "quantity": "1",
         "Unitprice": "10.99"
       },
       {
         "productId": "book-002",
-        "productName": "To Kill a Mockingbird",
+        "name": "To Kill a Mockingbird",
         "quantity": "2",
         "unitprice": "12.99"
       }
     ],
     "totalPrice": "36.97",
-    "status": 0
+    "status": 1
 }
 
 #####Basket##################################################
@@ -174,7 +175,7 @@ Content-Type: application/json
       "quantity": 2,
       "unitPrice": 150.0
     }
-  ],
+  
   "totalPrice": "300"
 }
 
@@ -221,3 +222,142 @@ Content-Type: application/json
   ],
   "totalPrice": "300"
 }
+
+
+############ udenom dapr ###########################
+
+################ order ###################
+
+@bookOrderUrl = http://localhost:8001
+
+### Direct Book Order Creation
+POST {{bookOrderUrl}}/order
+Content-Type: application/json
+
+
+{
+    "orderId": "123",
+    "customer": {
+       "customerId": "cust-001",
+        "name": "John Doe",
+        "email": "JohnD@mail.com",
+        "address": "123 Main St"
+    },
+    "items": [
+      {
+        "productId": "book-001",
+        "name": "The Great Gatsby",
+        "quantity": "1",
+        "Unitprice": "10.99"
+      },
+      {
+        "productId": "book-002",
+        "name": "To Kill a Mockingbird",
+        "quantity": "2",
+        "unitprice": "12.99"
+      }
+    ],
+    "totalPrice": "36.97",
+    "status": 1
+}
+
+
+
+### Get order status
+GET {{bookOrderUrl}}/order/123
+
+### Delete order
+DELETE {{bookOrderUrl}}/order/123
+
+
+############## Basket ###########################
+
+@basketUrl = http://localhost:8002
+@customerId = cust-001
+
+### Get basket (direct)
+GET {{basketUrl}}/basket/{{customerId}}
+
+### Add item to basket (direct)
+POST {{basketUrl}}/basket/{{customerId}}/items
+Content-Type: application/json
+
+{
+  "productId": "book-001",
+  "Name": "The Great Gatsby",
+  "unitPrice": 10.99
+}
+
+### Remove item from basket (direct)
+DELETE {{basketUrl}}/basket/{{customerId}}/items/book-001
+
+
+############### Inventory ###########################
+
+@inventoryUrl = http://localhost:8003
+
+### Get inventory item
+GET {{inventoryUrl}}/inventory/book-001
+
+### Set or update inventory item
+POST {{inventoryUrl}}/inventory
+Content-Type: application/json
+
+{
+  "productId": "book-001",
+  "productName": "The Great Gatsby",
+  "quantityAvailable": 20,
+  "inStock": true
+}
+
+### Reserve stock (direct call)
+POST {{inventoryUrl}}/inventory/reserve/book-001?quantity=2
+
+
+############## catalog ###########################
+
+@catalogUrl = http://localhost:8005
+
+### Get all books
+GET {{catalogUrl}}/api/catalog
+
+### Get one book
+GET {{catalogUrl}}/api/catalog/2
+
+### Update book
+POST {{catalogUrl}}/api/catalog/2
+Content-Type: application/json
+
+{
+  "id": "2",
+  "title": "1984",
+  "author": "Andy Hunt",
+  "genre" : "Romance",
+  "price": 42.5,
+  "stockQuantity": 15,
+  "imageUrl" : "https://example.com/1984.jpg",
+  "description": "Classic on software development"
+}
+
+
+### Delete book
+DELETE {{catalogUrl}}/api/catalog/12
+
+######### Payment ###########################
+
+@paymentUrl = http://localhost:8004
+@orderId = order-123
+@customerId = customer-123
+
+### Process Payment (direct)
+POST {{paymentUrl}}/payment
+Content-Type: application/json
+
+{
+  "orderId": "{{orderId}}",
+  "customerId": "{{customerId}}",
+  "amount": 36.97
+}
+
+### Get Payment Status
+GET {{paymentUrl}}/payment/{{orderId}}
