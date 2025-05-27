@@ -28,15 +28,12 @@ namespace BookOrder.Services
             {
                 var stateKey = $"order_{order.OrderId}";
 
-                // Try to get existing state
                 var existingState = await _daprClient.GetStateAsync<Order>(_stateStoreName, stateKey);
                 if (existingState != null)
                 {
-                    // Merge new data with existing state
                     order = MergeOrderStates(existingState, order);
                 }
 
-                // Save updated state
                 await _daprClient.SaveStateAsync(_stateStoreName, stateKey, order);
                 _logger.LogInformation("Updated state for order {OrderId} - Status: {Status}",
                     order.OrderId, order.Status);
@@ -54,7 +51,6 @@ namespace BookOrder.Services
         {
             try
             {
-                // Get order from state store by order ID
                 var stateKey = $"order_{orderId}";
                 var order = await _daprClient.GetStateAsync<Order>(_stateStoreName, stateKey);
 
@@ -79,7 +75,6 @@ namespace BookOrder.Services
             {
                 var stateKey = $"order_{orderId}";
 
-                // Tries to delete the order from the state store
                 await _daprClient.DeleteStateAsync(_stateStoreName, stateKey);
                 _logger.LogInformation("Deleted state for order {OrderId}", orderId);
                 return orderId;
@@ -93,7 +88,6 @@ namespace BookOrder.Services
 
         private Order MergeOrderStates(Order existing, Order update)
         {
-            // Preserve important fields from existing state
             update.Customer = update.Customer ?? existing.Customer;
             update.Items = update.Items ?? existing.Items;
             if (update.TotalPrice == 0)

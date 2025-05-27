@@ -2,6 +2,7 @@
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @using System.Text.Json
+@using ViewModel;
 
 <h3 class="text-center">Build your own list</h3>
 
@@ -51,7 +52,7 @@
 {
     <h4 class="text-center">Your list (@userList.Count)</h4>
     <div class="d-flex justify-content-center mb-3">
-        <button class="btn btn-success" @onclick="PickRandomFromUserList">Get random book</button>
+        <button class="btn btn-success" @onclick="PickRandomFromUserList">🎲Get Random Book</button>
     </div>
 
     <div class="container">
@@ -72,7 +73,7 @@
     </div>
 }
 
-<!-- Vist tilfældig bog -->
+<!-- Vis random bog -->
 @if (randomBook != null)
 {
     <hr />
@@ -184,16 +185,5 @@
     {
         
         Navigation.NavigateTo($"/book/{id}");
-    }
-
-    public class Book
-    {
-        public string Id { get; set; }
-        public string Title { get; set; }
-        public string Genre { get; set; }
-        public string Author { get; set; }
-        public double Price { get; set; }
-        public int StockQuantity { get; set; }
-        public string ImageUrl { get; set; }
     }
 }

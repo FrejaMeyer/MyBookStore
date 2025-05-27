@@ -2,9 +2,6 @@ using Inventory.Services;
 using Dapr.AspNetCore;
 using Dapr.Client;
 
-
-
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();

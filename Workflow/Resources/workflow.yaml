@@ -3,5 +3,5 @@ kind: Component
 metadata:
   name: bookworkflow
 spec:
-  type: workflow.dapr
-  version: v1
+type: workflow.dapr
+version: v1

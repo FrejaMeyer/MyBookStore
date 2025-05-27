@@ -36,7 +36,6 @@ namespace Workflow.Controllers
             return Ok();
         }
 
-        // 2️⃣ External event: BasketValidated
         [Topic("bookpubsub", "BasketValidated")]
         [HttpPost("events/basket-validated")]
         public async Task<IActionResult> BasketValidated([FromBody] Order result)
@@ -49,7 +48,6 @@ namespace Workflow.Controllers
             return Ok();
         }
 
-        // 3️⃣ External event: OrderCreated
         [Topic("bookpubsub", "OrderCreated")]
         [HttpPost("events/order-created")]
         public async Task<IActionResult> OrderCreated([FromBody] Order result)
@@ -62,7 +60,6 @@ namespace Workflow.Controllers
             return Ok();
         }
 
-        // 4️⃣ External event: PaymentProcessed
         [Topic("bookpubsub", "PaymentProcessed")]
         [HttpPost("events/payment-processed")]
         public async Task<IActionResult> PaymentProcessed([FromBody] Order result)

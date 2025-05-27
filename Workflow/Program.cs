@@ -7,7 +7,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
-// BUG: The following line is missing from the original code
 builder.Services.AddControllers().AddDapr();
 
 builder.Services.AddEndpointsApiExplorer();

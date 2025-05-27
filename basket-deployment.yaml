@@ -11,6 +11,10 @@ spec:
     metadata:
       labels:
         app: basket
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "basketservice"
+        dapr.io/app-port: "8080"
     spec:
       containers:
         - name: basket

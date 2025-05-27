@@ -39,7 +39,7 @@ namespace Inventory.Controllers
             return NoContent();
         }
 
-        // Reserve stock manually via API
+        // Reserve stock manually 
         [HttpPost("reserve/{productId}")]
         public async Task<IActionResult> ReserveStockAsync(string productId, int quantity)
         {

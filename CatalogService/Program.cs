@@ -9,7 +9,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowBlazorClient", policy =>
     {
         policy
-            .WithOrigins("http://localhost:5227")  // den port Blazor kører på
+            .WithOrigins("http://localhost:5227")  
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -17,9 +17,10 @@ builder.Services.AddCors(options =>
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
 
-builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddControllers().AddDapr();
 
 builder.Services.AddScoped<ICatalogService, CatalogService>();
 

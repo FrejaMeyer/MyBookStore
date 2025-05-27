@@ -8,7 +8,6 @@ namespace Frontend.Services
 
         public CustomerSessionService()
         {
-            // Gemmes kun i hukommelsen – kan udvides til localStorage senere
             CustomerId = Guid.NewGuid().ToString();
         }
 

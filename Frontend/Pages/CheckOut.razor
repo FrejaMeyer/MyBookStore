@@ -127,7 +127,6 @@ else
 
             if (paymentSuccess)
             {
-                // Hvis betaling lykkes, så gennemfør checkout og gem OrderId
                 CreatedOrderId = await BasketService.CheckoutAsync(customer);
 
                 if (!string.IsNullOrEmpty(CreatedOrderId))

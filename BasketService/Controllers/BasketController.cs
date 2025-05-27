@@ -22,7 +22,7 @@ public class BasketController : ControllerBase
         _daprClient = daprClient;
     }
 
-    // ✅ Hent kurv – bruger customerId fra URL
+    //Hent kurv – bruger customerId fra URL
     [HttpGet("{customerId}")]
     public async Task<ActionResult<Cart>> GetCart(string customerId)
     {
@@ -30,7 +30,7 @@ public class BasketController : ControllerBase
         return cart == null ? NotFound() : Ok(cart);
     }
 
-    // ✅ Læg i kurv – bruger customerId fra URL
+    //Læg i kurv – bruger customerId fra URL
     [HttpPost("{customerId}/items")]
     public async Task<IActionResult> AddItem(string customerId, [FromBody] CartItemDto item)
     {
@@ -46,7 +46,7 @@ public class BasketController : ControllerBase
         return Ok();
     }
 
-    // ✅ Fjern fra kurv – bruger customerId og productId fra URL
+    //Fjern fra kurv – bruger customerId og productId fra URL
     [HttpDelete("{customerId}/items/{productId}")]
     public async Task<IActionResult> RemoveItem(string customerId, string productId)
     {
@@ -123,30 +123,4 @@ public class BasketController : ControllerBase
 
         return Ok();
     }
-
-
-
-
-
-    // Dapr subscription
-    //[Topic("bookpubsub", "validate-basket")]
-    //[HttpPost("/validate-basket")]
-    //public async Task<IActionResult> ValidateBasket([FromBody] BasketMessage message)
-    //{
-    //    _logger.LogInformation("Validating basket for workflow {workflowId}", message.WorkflowId);
-
-    //    var result = new OrderDto
-    //    {
-    //        OrderId = message.OrderId,
-    //        Customer = message.Customer,
-    //        Items = message.Items,
-    //        TotalPrice = message.TotalPrice,
-    //        Status = "validated"
-    //    };
-
-    //    await _daprClient.PublishEventAsync("bookpubsub", "BasketValidated", result);
-
-    //    _logger.LogInformation("Published BasketValidated for order {OrderId}", message.OrderId);
-    //    return Ok();
-    //}
 }

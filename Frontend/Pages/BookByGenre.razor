@@ -2,12 +2,13 @@
 @inject NavigationManager Navigation
 @inject HttpClient Http
 @using System.Text.Json
+@using ViewModel;
 
 
 <h3>Books - @Genre</h3>
 
  <hr class="my-5" />
-    <h4 class="text-start mb-3">Find a book</h4>
+<h4 class="text-start mb-3">📙Find a book</h4>
 
     <input class="form-control mb-3" placeholder="Search by title or author..." @bind="searchQuery" />
 
@@ -89,17 +90,6 @@ else
     private void NavigateToBook(string id)
     {
         Navigation.NavigateTo($"/book/{id}");
-    }
-
-    private class Book
-    {
-        public string Id { get; set; }
-        public string Title { get; set; }
-        public string Genre { get; set; }
-        public string Author { get; set; }
-        public double Price { get; set; }
-        public int StockQuantity { get; set; }
-        public string ImageUrl { get; set; }
     }
 
     private List<Book>? allBooks;

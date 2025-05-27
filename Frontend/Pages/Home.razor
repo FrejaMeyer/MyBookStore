@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using Shared.Dto
+@using ViewModel;
 @inject HttpClient Http
 @inject NavigationManager Navigation
 
@@ -31,7 +32,7 @@
     </div>
     
     <hr class="my-5" />
-    <h4 class="text-start mb-3">Find a book</h4>
+    <h4 class="text-start mb-3">📙Find a book</h4>
 
     <input class="form-control mb-3" placeholder="Search by title or author..." @bind="searchQuery" />
 
@@ -61,14 +62,14 @@
 
 
 @code {
-    private List<BookDto>? allBooks;
-    private List<BookDto>? randomBooks;
+    private List<Book>? allBooks;
+    private List<Book>? randomBooks;
     private string searchQuery = string.Empty;
 
 
     protected override async Task OnInitializedAsync()
     {
-        allBooks = await Http.GetFromJsonAsync<List<BookDto>>("catalogservice/method/api/catalog");
+        allBooks = await Http.GetFromJsonAsync<List<Book>>("catalogservice/method/api/catalog");
 
         if (allBooks != null && allBooks.Count >= 3)
         {
@@ -82,19 +83,11 @@
         Navigation.NavigateTo($"/book/{id}");
     }
 
-    private IEnumerable<BookDto> filteredBooks => string.IsNullOrWhiteSpace(searchQuery)
+    private IEnumerable<Book> filteredBooks => string.IsNullOrWhiteSpace(searchQuery)
         ? null
         : allBooks?.Where(book =>
             (!string.IsNullOrEmpty(book.Title) && book.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)) ||
             (!string.IsNullOrEmpty(book.Author) && book.Author.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
         );
-
-      public class BookDto
-    {
-        public string Id { get; set; }
-        public string Title { get; set; }
-        public string Author { get; set; }
-        public string ImageUrl { get; set; }
-    }
 
 }
