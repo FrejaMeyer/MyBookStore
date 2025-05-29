@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: catalog
+  template:
+    metadata:
+      labels:
+        app: catalog
+    spec:
+      containers:
+        - name: catalog
+          image: frejameyer/catalog@sha256:b23398593faea87074e1e4226c68c88597fcc04455f590f87d5c2e31e4d2f3f7
+          ports:
+            - containerPort: 8080

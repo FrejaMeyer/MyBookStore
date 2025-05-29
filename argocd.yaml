@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/your-org/my-git-repo
+    repoURL: https://github.com/FrejaMeyer/MyBookStore.git
     targetRevision: HEAD
     path: k8s                      # path to folder containing your YAMLs
   destination:
