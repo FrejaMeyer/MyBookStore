@@ -1,6 +1,9 @@
 using Catalog.Data;
 using Catalog.Services;
+using Google.Api;
 using Microsoft.EntityFrameworkCore;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,9 +27,16 @@ builder.Services.AddControllers().AddDapr();
 
 builder.Services.AddScoped<ICatalogService, CatalogService>();
 
-
 builder.Services.AddDbContext<CatalogDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        new MySqlServerVersion(new Version(8, 0, 32))  // adjust version as needed
+    )
+);
+
+
+//builder.Services.AddDbContext<CatalogDbContext>(options =>
+//    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
 var app = builder.Build();
