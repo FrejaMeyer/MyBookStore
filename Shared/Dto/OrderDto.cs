@@ -12,7 +12,18 @@ namespace Shared.Dto
         public CustomerDto Customer { get; set; } 
         public List<CartItemDto> Items { get; set; }
         public double TotalPrice { get; set; }
-        public string Status { get; set; }
+        public OrderStatus Status { get; set; }
         public string? Error { get; set; }
+    }
+
+
+    public enum OrderStatus
+    {
+        Submitted,
+        Validated,
+        Pending,
+        Shipped,
+        Completed
+
     }
 }

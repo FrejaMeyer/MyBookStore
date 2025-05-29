@@ -15,7 +15,7 @@ namespace Shared.Messages
 
     public class PaymentResultMessage : PaymentMessage
     {
-        public bool Success { get; set; }
-        public string Message { get; set; }
+        public string Status { get; set; }
+        public string? Error { get; set; }
     }
 }

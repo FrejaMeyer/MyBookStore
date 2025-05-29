@@ -1,29 +1,31 @@
 ﻿@page "/order/{orderId}"
 @inject HttpClient Http
 @inject NavigationManager Navigation
+@inject BasketClientService BasketService
 @using Shared.Dto;
 @using System.Net.Http.Json
 @using Microsoft.AspNetCore.Components
+@using Services
 
-<h3>Ordrebekræftelse</h3>
+<h3>Ordre confirmation</h3>
 
 @if (order == null)
 {
-    <p>Indlæser ordredetaljer...</p>
+    <p>Loading orderdetails...</p>
 }
 else
 {
     <p><strong>Ordre-ID:</strong> @order.OrderId</p>
-    <p><strong>Navn:</strong> @order.Customer.Name</p>
+    <p><strong>Name:</strong> @order.Customer.Name</p>
     <p><strong>Email:</strong> @order.Customer.Email</p>
-    <p><strong>Adresse:</strong> @order.Customer.Address</p>
+    <p><strong>Address:</strong> @order.Customer.Address</p>
 
     <table class="table mt-3">
         <thead>
             <tr>
-                <th>Produkt</th>
-                <th>Antal</th>
-                <th>Pris</th>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Price</th>
                 <th>Total</th>
             </tr>
         </thead>
@@ -34,7 +36,7 @@ else
                     <td>@item.Name</td>
                     <td>@item.Quantity</td>
                     <td>@item.UnitPrice.ToString("C")</td>
-                    <td>@(item.Quantity* item.UnitPrice).ToString("C")</td>
+                    <td>@((item.Quantity* item.UnitPrice).ToString("C"))</td>
                 </tr>
             }
         </tbody>
@@ -46,7 +48,7 @@ else
         </tfoot>
     </table>
 
-    <button class="btn btn-primary" @onclick="GoHome">Til forsiden</button>
+    <button class="btn btn-primary" @onclick="GoHome">Done</button>
 }
 
 @code {
@@ -55,16 +57,22 @@ else
 
     private OrderDto? order;
 
+
     protected override async Task OnInitializedAsync()
     {
         if (!string.IsNullOrEmpty(orderId))
         {
+
             order = await Http.GetFromJsonAsync<OrderDto>($"orderservice/method/order/{orderId}");
+            await BasketService.ClearCartAsync(); 
         }
     }
 
     private void GoHome()
     {
-        Navigation.NavigateTo("/");
+        Navigation.NavigateTo("/", forceLoad: true);
     }
+
+
+
 }

@@ -23,5 +23,11 @@ public class CartStateService
         ItemCount = Math.Max(0, ItemCount - amount);
         OnChange?.Invoke();
     }
+
+
+    public void NotifyCartChanged() => OnChange?.Invoke();
+
 }
+
+
 

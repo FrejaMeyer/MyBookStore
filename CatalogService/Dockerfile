@@ -13,6 +13,7 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["CatalogService/Catalog.csproj", "CatalogService/"]
+COPY ["Shared/Shared.csproj", "Shared/"]
 RUN dotnet restore "./CatalogService/Catalog.csproj"
 COPY . .
 WORKDIR "/src/CatalogService"

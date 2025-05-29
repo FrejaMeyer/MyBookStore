@@ -11,11 +11,14 @@ public class BasketClientService
 {
     private readonly HttpClient _http;
     private readonly CustomerSessionService _session;
+    private readonly CartStateService _cartState; 
 
-    public BasketClientService(HttpClient http, CustomerSessionService session)
+
+    public BasketClientService(HttpClient http, CustomerSessionService session, CartStateService cartState)
     {
         _http = http;
         _session = session;
+        _cartState = cartState;
     }
 
     public async Task UpdateCartAsync(CartItemDto item)
@@ -76,6 +79,14 @@ public class BasketClientService
     private class CheckoutResponse
     {
         public string OrderId { get; set; }
+    }
+
+
+    public async Task ClearCartAsync()
+    {
+        var customerId = _session.GetCustomerId();
+        await _http.DeleteAsync($"basketservice/method/basket/{customerId}");
+        _cartState.NotifyCartChanged();
     }
 }
 

@@ -4,6 +4,7 @@
 @inject NavigationManager Navigation
 @inject PaymentService PaymentService
 @using Shared.Dto;
+
 @using Services; 
 
 <h3>Your ordre</h3>
@@ -117,26 +118,42 @@ else
 
         try
         {
-            var paymentRequest = new PaymentRequestDto
+            var orderId = Guid.NewGuid().ToString();
+
+            var order = new OrderDto
             {
-                OrderId = Guid.NewGuid().ToString(),
-                Amount = cart.Items.Sum(x => x.UnitPrice * x.Quantity),
+                OrderId = orderId,
+                Customer = new CustomerDto
+                {
+                    CustomerId = customer.CustomerId,
+                    Name = customer.Name,
+                    Email = customer.Email,
+                    Address = customer.Address
+                },
+                Items = cart.Items.Select(item => new CartItemDto
+                {
+                    ProductId = item.ProductId,
+                    Name = item.Name,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice
+                }).ToList(),
+                TotalPrice = cart.Items.Sum(x => x.UnitPrice * x.Quantity),
+                Status = 0
             };
 
-            var paymentSuccess = await PaymentService.SimulatePaymentAsync(paymentRequest);
+            var paymentRequest = new PaymentRequestDto
+            {
+                OrderId = orderId,
+                Amount = order.TotalPrice
+            };
+
+            var paymentSuccess = await PaymentService.SimulatePaymentAsync(paymentRequest, order);
 
             if (paymentSuccess)
             {
-                CreatedOrderId = await BasketService.CheckoutAsync(customer);
+                CreatedOrderId = orderId; // vi har jo allerede sat det
 
-                if (!string.IsNullOrEmpty(CreatedOrderId))
-                {
-                    ModalMessage = "Betaling gennemført!";
-                }
-                else
-                {
-                    ModalMessage = "Fejl ved oprettelse af ordre. Prøv igen.";
-                }
+                ModalMessage = "Betaling gennemført!";
             }
             else
             {
@@ -155,6 +172,7 @@ else
             isProcessing = false;
         }
     }
+
 
     private void HandleModalClose()
     {

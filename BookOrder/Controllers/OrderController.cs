@@ -3,8 +3,7 @@ using BookOrder.Services;
 using Dapr;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Messages;
-using Shared.Dto;
-using BookOrder.Models;
+
 using Dapr.Client;
 
 namespace BookOrder.Controllers
@@ -25,13 +24,13 @@ namespace BookOrder.Controllers
             
         }
 
-        [Topic("bookpubsub", "OrderCreated")]
-        [HttpPost]
-        public async Task<ActionResult<Order>> CreateOrder(Order order)
+      //  [Topic("bookpubsub", "OrderCreated")]
+        [HttpPost("order")]
+        public async Task<ActionResult<Order>> CreateOrder([FromBody]Order input)
         {
-            _logger.LogInformation("Received new order: {OrderId}", order.OrderId);
-            var result = await _orderStateService.UpdateOrderStateAsync(order);
-            return CreatedAtAction(nameof(GetOrder), new { orderId = order.OrderId }, result);
+            _logger.LogInformation("Received new order: {OrderId}", input.OrderId);
+            var result = await _orderStateService.UpdateOrderStateAsync(input);
+            return CreatedAtAction(nameof(GetOrder), new { orderId = input.OrderId }, result);
         }
 
         [HttpGet("{orderId}")]

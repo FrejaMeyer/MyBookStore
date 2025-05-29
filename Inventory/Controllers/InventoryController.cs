@@ -3,6 +3,7 @@ using Inventory.Services;
 using Inventory.Models;
 using Dapr.Client;
 using Shared.Messages;
+using Shared.Dto;
 using Dapr;
 
 namespace Inventory.Controllers
@@ -33,7 +34,7 @@ namespace Inventory.Controllers
 
         //Add or update inventory
         [HttpPost]
-        public async Task<IActionResult> SetItemAsync([FromBody] InventoryItem item)
+        public async Task<IActionResult> SetItemAsync([FromBody] InventoryItemDto item)
         {
             await _inventoryService.SetItemAsync(item);
             return NoContent();
@@ -41,9 +42,9 @@ namespace Inventory.Controllers
 
         // Reserve stock manually 
         [HttpPost("reserve/{productId}")]
-        public async Task<IActionResult> ReserveStockAsync(string productId, int quantity)
+        public async Task<IActionResult> ReserveStockAsync(string productId, int quantity, string orderId)
         {
-            var success = await _inventoryService.ReserveStockAsync(productId, quantity);
+            var success = await _inventoryService.ReserveStockAsync(productId, quantity, orderId);
             if (success)
             {
                 return Ok(success);
@@ -54,6 +55,21 @@ namespace Inventory.Controllers
             }
         }
 
+        // Confirmand remove from storage
+        [HttpPost("confirm-reservation")]
+        public async Task<IActionResult> ConfirmReservation([FromBody] ConfirmReservationMessage message)
+        {
+            foreach (var item in message.Items)
+            {
+                var stock = await _inventoryService.GetItemAsync(item.ProductId);
+                stock.QuantityAvailable -= item.Quantity;
+               // stock.QuantityReserved -= item.Quantity;
+                await _inventoryService.SetItemAsync(stock);
+            }
+
+            return Ok();
+        }
+
         // Handle inventory check from workflow
         [Topic("bookpubsub", "check-inventory")]
         [HttpPost("/check-inventory")]
@@ -61,7 +77,7 @@ namespace Inventory.Controllers
         {
             _logger.LogInformation("Checking inventory for Order {OrderId} / Workflow {WorkflowId}", message.OrderId, message.WorkflowId);
 
-            var success = await _inventoryService.ReserveStockAsync(message.ProductId, message.Quantity);
+            var success = await _inventoryService.ReserveStockAsync(message.ProductId, message.Quantity, message.OrderId);
 
             var result = new InventoryResultMessage
             {
@@ -77,5 +93,42 @@ namespace Inventory.Controllers
 
             return Ok();
         }
+
+        [HttpPost("reserve")]
+        public async Task<IActionResult> Reserve([FromBody] ReserveStockMessage message)
+        {
+            foreach (var item in message.Items)
+            {
+                var stock = await _inventoryService.GetItemAsync(item.ProductId);
+
+                if (stock.QuantityAvailable < item.Quantity)
+                    return BadRequest($"Not enough stock for {item.ProductId}");
+
+                stock.QuantityAvailable -= item.Quantity;
+                stock.QuantityReserved += item.Quantity;
+
+                await _inventoryService.SetItemAsync(stock);
+            }
+
+            return Ok();
+        }
+
+        [HttpPost("cancel-reservation")]
+        public async Task<IActionResult> CancelReservation([FromBody] CancelReservationMessage message)
+        {
+            foreach (var item in message.Items)
+            {
+                var stock = await _inventoryService.GetItemAsync(item.ProductId);
+
+                stock.QuantityReserved -= item.Quantity;
+                stock.QuantityAvailable += item.Quantity;
+
+                await _inventoryService.SetItemAsync(stock);
+            }
+
+            return Ok();
+        }
+
+
     }
 }

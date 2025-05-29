@@ -4,6 +4,7 @@
 @inject BasketClientService BasketService
 @inject CartStateService CartState
 @inject NavigationManager Navigation
+@implements IDisposable
 
 <h2>🛒 Your cart</h2>
 
@@ -73,6 +74,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        CartState.OnChange += StateHasChanged;
         await LoadCart();
     }
 
@@ -135,6 +137,12 @@ else
     await BasketService.UpdateCartAsync(updatedItem);
     await LoadCart();
 }
+
+
+    public void Dispose()
+    {
+        CartState.OnChange -= StateHasChanged;
+    }
 
 }
 

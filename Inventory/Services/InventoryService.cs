@@ -1,14 +1,15 @@
 ﻿using Inventory.Models;
 using Dapr.Client;
 using System.Net.WebSockets;
+using Shared.Dto;
 
 namespace Inventory.Services
 {
     public interface IInventoryService
     {
-        public Task<InventoryItem> GetItemAsync(string productId);
-        public Task SetItemAsync(InventoryItem item);
-        public Task<bool> ReserveStockAsync(string productId, int quantity);
+        public Task<InventoryItemDto> GetItemAsync(string productId);
+        public Task SetItemAsync(InventoryItemDto item);
+        public Task<bool> ReserveStockAsync(string productId, int quantity, string orderId);
     }
     public class InventoryService : IInventoryService
     {
@@ -25,24 +26,23 @@ namespace Inventory.Services
             _logger = logger;
         }
 
-        public async Task<InventoryItem> GetItemAsync(string productId)
+        public async Task<InventoryItemDto> GetItemAsync(string productId)
         {
-            var item = await _daprClient.GetStateAsync<InventoryItem>(StoreName, productId);
-            return item ?? new InventoryItem
+            var item = await _daprClient.GetStateAsync<InventoryItemDto>(StoreName, productId);
+            return item ?? new InventoryItemDto
             {
                 ProductId = productId,
-                ProductName = "Unknown",
                 Instock = false,
                 QuantityAvailable = 0
             };
         }
 
-        public async Task SetItemAsync(InventoryItem item)
+        public async Task SetItemAsync(InventoryItemDto item)
         {
             await _daprClient.SaveStateAsync(StoreName, item.ProductId, item);
             _logger.LogInformation("Inventory updated for {ProductId}", item.ProductId);
         }
-        public async Task<bool> ReserveStockAsync(string productId, int quantity)
+        public async Task<bool> ReserveStockAsync(string productId, int quantity, string orderId)
         {
             var item = await GetItemAsync(productId);
             if (item.QuantityAvailable < quantity)
@@ -53,7 +53,7 @@ namespace Inventory.Services
             item.QuantityAvailable -= quantity;
             await SetItemAsync(item);
             _logger.LogInformation("Reserved {Quantity} of {ProductId}. Remaining: {Remaining}", quantity, productId, item.QuantityAvailable);
-            await _daprClient.PublishEventAsync(Pubsub, TopicName, item);
+            await _daprClient.SaveStateAsync(StoreName, $"Reservation--{productId} for {orderId}", quantity);
             return true;
         }
 

@@ -18,7 +18,7 @@ namespace Payment.Controllers
             _logger = logger;
         }
 
-        [HttpPost]
+        [HttpPost("process")]
         public async Task<IActionResult> ProcessPayment([FromBody] PaymentRequest paymentRequest)
         {
             _logger.LogInformation("ProcessPayment hit for OrderId: {OrderId}", paymentRequest.OrderId);

@@ -19,6 +19,7 @@ builder.Services.AddScoped<CustomerSessionService>();
 builder.Services.AddScoped<PaymentService>();
 
 
+
 builder.Services.AddBlazoredToast();
 
 // builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
