@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: catalog
-          image: frejameyer/catalog@sha256:b23398593faea87074e1e4226c68c88597fcc04455f590f87d5c2e31e4d2f3f7
+          image: frejameyer/catalog@sha256:f553c39c8528f33c4e29b20ceb55f0f69454084e97c88be8ad01d6ebf9cc0931
           ports:
             - containerPort: 8080
