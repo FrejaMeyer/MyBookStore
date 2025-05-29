@@ -22,8 +22,11 @@ namespace Catalog.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<Book>>> GetAll() =>
-            Ok(await _catalogService.GetBooksAsync());
+        public async Task<ActionResult<List<Book>>> GetAll()
+        {
+            _logger.LogInformation("Henter alle bøger fra kataloget");
+            return Ok(await _catalogService.GetBooksAsync());
+        }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Book>> GetById(string id)
