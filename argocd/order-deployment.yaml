@@ -11,9 +11,13 @@ spec:
     metadata:
       labels:
         app: order
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "orderservice"
+        dapr.io/app-port: "8001"
     spec:
       containers:
         - name: order
-          image: frejameyer/bookorder@sha256:debda39ae64f4468a2a9734c7fa2d15dfe5b31eca7e379b81a702dc835635d2a
+          image: frejameyer/bookorder@sha256:8fffbb37719805d6429d9460a1abb556ccc2af9b624ca54567a386dee4c0021c
           ports:
             - containerPort: 8080
