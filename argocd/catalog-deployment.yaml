@@ -14,4 +14,4 @@ spec:
     spec:
       containers:
         - name: catalog
-          image: frejameyer/catalog@sha256:952b41b16e0e29749197e54dd23784cac1a9f791b847bc875b5b30d001719ff9
+          image: frejameyer/catalog@sha256:f332f80c90d3c02d06095def2d73c269097934fb6c385e102d57d4fbfb844d52
