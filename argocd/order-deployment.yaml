@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: order
-          image: frejameyer/bookorder@sha256:8fffbb37719805d6429d9460a1abb556ccc2af9b624ca54567a386dee4c0021c
+          image: frejameyer/bookorder@sha256:debda39ae64f4468a2a9734c7fa2d15dfe5b31eca7e379b81a702dc835635d2a
           ports:
             - containerPort: 8080
