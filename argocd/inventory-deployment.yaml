@@ -13,7 +13,7 @@ spec:
         app: inventory
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/app-id: "orderservice"
+        dapr.io/app-id: "inventoryservice"
         dapr.io/app-port: "8080"
     spec:
       containers:
