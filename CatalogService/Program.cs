@@ -2,8 +2,9 @@ using Catalog.Data;
 using Catalog.Services;
 using Google.Api;
 using Microsoft.EntityFrameworkCore;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Microsoft.Extensions.Configuration;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
