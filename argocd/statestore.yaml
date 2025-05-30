@@ -8,6 +8,6 @@ spec:
   version: v1
   metadata:
     - name: redisHost
-      value: redis-master.default.svc.cluster.local:6379
+      value: redis-master-master.default.svc.cluster.local:6379
     - name: redisPassword
       value: ""
