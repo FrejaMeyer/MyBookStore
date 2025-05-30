@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: basket
-          image: frejameyer/basket@sha256:e3d2c8b6c531ed161e9b7e8444b408f3ed9e2410cf4f33d5ed8ed04f775cc173
+          image: frejameyer/basket@sha256:221a99f762eabffd09e93c1627c6fb88bc638e7fc865ab188ecb0b281eb02c7a
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
