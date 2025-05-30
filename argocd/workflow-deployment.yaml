@@ -11,6 +11,10 @@ spec:
     metadata:
       labels:
         app: workflow
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "workflowservice"
+        dapr.io/app-port: "8080"
     spec:
       containers:
         - name: workflow
