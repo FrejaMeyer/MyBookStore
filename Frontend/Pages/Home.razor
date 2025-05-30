@@ -1,7 +1,7 @@
 ﻿@page "/"
 @using Shared.Dto
 @using ViewModel;
-@inject HttpClient Http
+
 @inject NavigationManager Navigation
 
 <div class="container mt-5 text-center">
@@ -69,7 +69,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        allBooks = await Http.GetFromJsonAsync<List<Book>>("catalogservice/method/api/catalog");
+        var http = new HttpClient
+        {
+            BaseAddress = new Uri($"http://localhost:30005")
+        };
+
+
+        allBooks = await http.GetFromJsonAsync<List<Book>>("/api/catalog");
 
         if (allBooks != null && allBooks.Count >= 3)
         {

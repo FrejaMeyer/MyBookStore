@@ -9,14 +9,17 @@ namespace Frontend.Services;
 
 public class BasketClientService
 {
-    private readonly HttpClient _http;
+    private HttpClient _http;
     private readonly CustomerSessionService _session;
     private readonly CartStateService _cartState; 
 
 
-    public BasketClientService(HttpClient http, CustomerSessionService session, CartStateService cartState)
+    public BasketClientService(CustomerSessionService session, CartStateService cartState)
     {
-        _http = http;
+        _http = new HttpClient
+        {
+            BaseAddress = new Uri("http://localhost:30002")
+        };
         _session = session;
         _cartState = cartState;
     }
@@ -24,26 +27,26 @@ public class BasketClientService
     public async Task UpdateCartAsync(CartItemDto item)
     {
         var customerId = _session.GetCustomerId();
-        await _http.PutAsJsonAsync($"basket/method/basket/{customerId}/items", item);
+        await _http.PutAsJsonAsync($"/basket/{customerId}/items", item);
     }
 
 
     public async Task<CartDto?> GetCartAsync()
     {
         var customerId = _session.GetCustomerId();
-        return await _http.GetFromJsonAsync<CartDto>($"basketservice/method/basket/{customerId}");
+        return await _http.GetFromJsonAsync<CartDto>($"/basket/{customerId}");
     }
 
     public async Task AddToCartAsync(CartItemDto item)
     {
         var customerId = _session.GetCustomerId();
-        await _http.PostAsJsonAsync($"basketservice/method/basket/{customerId}/items", item);
+        await _http.PostAsJsonAsync($"/basket/{customerId}/items", item);
     }
 
     public async Task RemoveFromCartAsync(string productId)
     {
         var customerId = _session.GetCustomerId();
-        await _http.DeleteAsync($"basketservice/method/basket/{customerId}/items/{productId}");
+        await _http.DeleteAsync($"/basket/{customerId}/items/{productId}");
     }
 
     public async Task<string?> CheckoutAsync(CustomerDto customer)
@@ -54,7 +57,7 @@ public class BasketClientService
             customer.CustomerId = _session.GetCustomerId();
             //customer.CustomerId = Guid.NewGuid().ToString();
 
-            var response = await _http.PostAsJsonAsync("basketservice/method/basket/checkout", customer);
+            var response = await _http.PostAsJsonAsync("/basket/checkout", customer);
             var responseBody = await response.Content.ReadAsStringAsync();
 
             Console.WriteLine($"[Checkout] Status: {response.StatusCode}");
@@ -85,7 +88,7 @@ public class BasketClientService
     public async Task ClearCartAsync()
     {
         var customerId = _session.GetCustomerId();
-        await _http.DeleteAsync($"basketservice/method/basket/{customerId}");
+        await _http.DeleteAsync($"/basket/{customerId}");
         _cartState.NotifyCartChanged();
     }
 }

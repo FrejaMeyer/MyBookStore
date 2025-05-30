@@ -8,12 +8,23 @@ namespace Frontend.Services
 {
     public class PaymentService
     {
-        private readonly HttpClient _httpClient;
+        private HttpClient _httpClient;
+        private HttpClient _httpClientOrder;
+
         private readonly CustomerSessionService _session;
 
-        public PaymentService(HttpClient httpClient, CustomerSessionService session)
+        public PaymentService(CustomerSessionService session)
         {
-            _httpClient = httpClient;
+            _httpClient = new HttpClient
+            {
+                BaseAddress = new Uri($"http://localhost:30004")
+            };
+
+            _httpClientOrder = new HttpClient
+            {
+                BaseAddress = new Uri($"http://localhost:30001")
+            };
+
             _session = session;
         }
 
@@ -22,8 +33,8 @@ namespace Frontend.Services
             request.CustomerId = _session.GetCustomerId();
 
             // 1. Opret ordren via Dapr (POST)
-            var orderResponse = await _httpClient.PostAsJsonAsync(
-                "orderservice/method/order/order", order);
+            var orderResponse = await _httpClientOrder.PostAsJsonAsync(
+                "/order/order", order);
 
             if (!orderResponse.IsSuccessStatusCode)
             {
@@ -33,7 +44,7 @@ namespace Frontend.Services
 
             // 2. Send betaling via Dapr (POST)
             var paymentResponse = await _httpClient.PostAsJsonAsync(
-                "payment/method/payment/process", request);
+                "/payment/process", request);
 
             if (!paymentResponse.IsSuccessStatusCode)
             {
@@ -42,8 +53,8 @@ namespace Frontend.Services
             }
 
             // 3. (Valgfrit) Hent ordrebekræftelse (GET)
-            var getResponse = await _httpClient.GetAsync(
-                $"orderservice/method/order/{request.OrderId}");
+            var getResponse = await _httpClientOrder.GetAsync(
+                $"/order/{request.OrderId}");
 
             if (!getResponse.IsSuccessStatusCode)
             {

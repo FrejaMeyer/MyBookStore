@@ -10,7 +10,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient()
 {
-    BaseAddress = new Uri("http://localhost:30005")
+    BaseAddress = new Uri("http://localhost:300")
 });
 
 builder.Services.AddScoped<BasketClientService>();

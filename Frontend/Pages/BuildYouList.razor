@@ -118,7 +118,7 @@
     {
         try
         {
-            var response = await Http.GetAsync("catalogservice/method/api/catalog");
+            var response = await Http.GetAsync("/api/catalog");
 
             if (response.IsSuccessStatusCode)
             {

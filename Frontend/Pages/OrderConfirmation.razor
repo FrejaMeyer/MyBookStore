@@ -1,5 +1,4 @@
 ﻿@page "/order/{orderId}"
-@inject HttpClient Http
 @inject NavigationManager Navigation
 @inject BasketClientService BasketService
 @using Shared.Dto;
@@ -60,11 +59,16 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        var http = new HttpClient
+        {
+            BaseAddress = new Uri($"http://localhost:30001")
+        };
+
         if (!string.IsNullOrEmpty(orderId))
         {
 
-            order = await Http.GetFromJsonAsync<OrderDto>($"orderservice/method/order/{orderId}");
-            await BasketService.ClearCartAsync(); 
+            order = await http.GetFromJsonAsync<OrderDto>($"order/{orderId}");
+            await BasketService.ClearCartAsync();
         }
     }
 

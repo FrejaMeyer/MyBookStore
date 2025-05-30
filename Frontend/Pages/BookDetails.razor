@@ -2,7 +2,6 @@
 @using Services
 @using Shared.Dto
 @using ViewModel;
-@inject HttpClient Http
 @inject BasketClientService BasketService
 @inject NavigationManager Navigation
 @inject CartStateService CartState
@@ -49,7 +48,11 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        book = await Http.GetFromJsonAsync<Book>($"catalogservice/method/api/catalog/{id}");
+        var http = new HttpClient
+        {
+            BaseAddress = new Uri($"http://localhost:30005")
+        };
+        book = await http.GetFromJsonAsync<Book>($"/api/catalog/{id}");
     }
 
     private async Task AddToCart()
