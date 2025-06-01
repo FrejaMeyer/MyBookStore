@@ -18,6 +18,6 @@ spec:
     spec:
       containers:
         - name: workflow
-          image: frejameyer/workflow@sha256:1b4eff68b57a8de5a6b5129d27dfa943edf892e3c0e2c54b4ed1e4499b8b16ac
+          image: frejameyer/workflow@sha256:aedd2a047161be30df523e7398c4c48f1d1e230a2de833ab221e610b8116fab1
           ports:
             - containerPort: 8080
