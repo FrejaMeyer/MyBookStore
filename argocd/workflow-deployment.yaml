@@ -13,7 +13,7 @@ spec:
         app: workflow
       annotations:
         dapr.io/enabled: "true"
-        dapr.io/app-id: "workflowservice"
+        dapr.io/app-id: "workflow"
         dapr.io/app-port: "8080"
         dapr.io/app-protocol: "http"
         dapr.io/enable-workflow-runtime: "true"
