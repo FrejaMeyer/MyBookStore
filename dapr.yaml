@@ -19,6 +19,7 @@ apps:
     appPort: 8006
     daprHTTPPort: 3504
     command: ["dotnet", "run"]
+    enableWorkflowRuntime: true
   - appDirPath: ./Payment/
     appID: payment
     appPort: 8004

@@ -7,6 +7,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("http://localhost:5227")
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 builder.Services.AddControllers().AddDapr();
 
 builder.Services.AddEndpointsApiExplorer();
@@ -21,6 +31,9 @@ builder.Services.AddDaprWorkflow(options =>
     options.RegisterActivity<BasketActivity>();
     options.RegisterActivity<OrderActivity>();
     options.RegisterActivity<PaymentActivity>();
+    options.RegisterActivity<InventoryReserveActivity>();
+    options.RegisterActivity<InventoryCancelActivity>();
+    options.RegisterActivity<InventoryConfirmActivity>();
 });
 
 var app = builder.Build();
@@ -32,6 +45,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors("AllowFrontend");
+
 
 app.UseCloudEvents();
 app.MapSubscribeHandler();

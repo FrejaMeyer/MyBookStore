@@ -3,6 +3,8 @@
 @inject CustomerSessionService Session
 @inject NavigationManager Navigation
 @inject PaymentService PaymentService
+@inject HttpClient Http
+
 @using Shared.Dto;
 
 @using Services; 
@@ -147,17 +149,22 @@ else
                 Amount = order.TotalPrice
             };
 
-            var paymentSuccess = await PaymentService.SimulatePaymentAsync(paymentRequest, order);
+            var response = await Http.PostAsJsonAsync("http://localhost:30006/workflow/start-order", order); // din workflow-service port
 
-            if (paymentSuccess)
+            //var paymentSuccess = await PaymentService.SimulatePaymentAsync(paymentRequest, order);
+
+            if (response.IsSuccessStatusCode)
             {
-                CreatedOrderId = orderId; // vi har jo allerede sat det
+               // CreatedOrderId = orderId; 
 
-                ModalMessage = "Betaling gennemført!";
+                var result = await response.Content.ReadFromJsonAsync<WorkflowResponse>();
+                ModalMessage = $"Workflow startet! ID: {result.WorkflowInstanceId}";
+
+                ModalMessage = "Payment succed!";
             }
             else
             {
-                ModalMessage = "Betaling blev afvist. Tjek oplysningerne og prøv igen.";
+                ModalMessage = "Something went wrong.";
             }
 
             ShowModal = true;
@@ -166,7 +173,7 @@ else
         {
          
 
-            ModalMessage = $"Uventet fejl: {ex.Message}";
+            ModalMessage = $"Unexpected error: {ex.Message}";
             ShowModal = true;
         }
         finally
@@ -184,6 +191,13 @@ else
         {
             Navigation.NavigateTo($"/order/{CreatedOrderId}");
         }
+    }
+
+    public class WorkflowResponse
+    {
+        public string OrderId { get; set; }
+        public string WorkflowInstanceId { get; set; }
+        public string Status { get; set; }
     }
 }
 
