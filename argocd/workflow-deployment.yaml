@@ -17,6 +17,7 @@ spec:
         dapr.io/app-port: "8080"
         dapr.io/app-protocol: "grpc"
         dapr.io/enable-workflow-runtime: "true"
+        dapr.io/actor-state-store: "bookstatestore"
     spec:
       containers:
         - name: workflow
