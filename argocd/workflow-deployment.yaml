@@ -23,3 +23,6 @@ spec:
           image: frejameyer/workflow@sha256:aedd2a047161be30df523e7398c4c48f1d1e230a2de833ab221e610b8116fab1
           ports:
             - containerPort: 8080
+          env:
+          - name: DAPR_ACTOR_STATE_STORE
+            value: bookstatestore
