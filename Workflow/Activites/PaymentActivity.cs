@@ -23,7 +23,7 @@ public class PaymentActivity : WorkflowActivity<Order, Order>
         {
             _logger.LogInformation("Processing payment for order {OrderId}", order.OrderId);
 
-            // Send betaling til payment-service
+
             var response = await _daprClient.InvokeMethodAsync<Order, PaymentResultMessage>(
                 HttpMethod.Post,
                 "payment",          // app-id på din payment-service

@@ -113,10 +113,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // genres
+        var http = new HttpClient
+        {
+            BaseAddress = new Uri($"http://localhost:30005")
+        };
         try
         {
-            var response = await Http.GetAsync("catalogservice/method/api/catalog");
+            var response = await http.GetAsync("api/catalog");
             var content = await response.Content.ReadAsStringAsync();
 
             var books = JsonSerializer.Deserialize<List<Book>>(content, new JsonSerializerOptions

@@ -1,7 +1,8 @@
 ﻿using Catalog.Models;
 using Catalog.Services;
-using Microsoft.AspNetCore.Mvc;
+using Dapr;
 using Dapr.Client;
+using Microsoft.AspNetCore.Mvc;
 using Shared.Dto;
 
 namespace Catalog.Controllers
@@ -19,6 +20,15 @@ namespace Catalog.Controllers
             _catalogService = catalogService;
             _daprClient = daprClient;
             _logger = logger;
+        }
+        [Topic("pubsub", "catalog.inventory.updated")]
+        [HttpPost("inventory-updated")]
+        public async Task<IActionResult> HandleInventoryUpdated([FromBody] InventoryResponse response)
+        {
+            // Gem i f.eks. Redis, MemoryCache, Database – eller push til frontend via SignalR
+            await _catalogService.UpdateCachedInventoryAsync(response.ProductId, response.QuantityAvailable);
+
+            return Ok();
         }
 
         [HttpGet]
@@ -44,21 +54,12 @@ namespace Catalog.Controllers
                 ImageUrl = item.ImageUrl,
             };
 
+            await _daprClient.PublishEventAsync("pubsub", "inventory.request", new InventoryRequest()
+            {
+                ProductId = id,
+                ReplyTo = "catalog.inventory.response"  
+            });
             // Hent lager fra InventoryService
-            try
-            {
-                var inventoryItem = await _daprClient.InvokeMethodAsync<InventoryItemDto>(
-                  HttpMethod.Get,
-                 "inventory",
-                  $"inventory/{id}");
-
-                dto.StockQuantity = inventoryItem?.QuantityAvailable;
-            }
-            catch
-            {
-                // Lagerdata ikke tilgængeligt – vis ikke noget
-                dto.StockQuantity = null;
-            }
 
             return Ok(dto);
 

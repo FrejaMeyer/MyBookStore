@@ -93,9 +93,13 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        var http = new HttpClient
+        {
+            BaseAddress = new Uri($"http://localhost:30005")
+        };
         try
         {
-            var response = await Http.GetAsync("api/catalog");
+            var response = await http.GetAsync("api/catalog");
 
             if (!response.IsSuccessStatusCode)
             {

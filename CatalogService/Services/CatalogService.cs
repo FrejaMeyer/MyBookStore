@@ -1,6 +1,7 @@
 ﻿using Catalog.Data;
 using Catalog.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Concurrent;
 
 namespace Catalog.Services
 {
@@ -11,11 +12,16 @@ namespace Catalog.Services
         public Task AddAsync(Book book);
         public Task UpdateAsync(Book book);
         public Task DeleteAsync(string id);
+
+        public Task UpdateCachedInventoryAsync(string productId, int quantityAvailable);
+
     }
     public class CatalogService : ICatalogService
     {
         private readonly CatalogDbContext _dbContext;
         private readonly ILogger<CatalogService> _logger;
+        private readonly ConcurrentDictionary<string, int> _inventoryCache = new();
+
 
         public CatalogService(CatalogDbContext dbContext, ILogger<CatalogService> logger)
         {
@@ -27,6 +33,18 @@ namespace Catalog.Services
             _dbContext.Books.Add(book);
             await _dbContext.SaveChangesAsync();
             _logger.LogInformation("Book added:{Id} {Title}",book.Id, book.Title);
+        }
+
+        public Task UpdateCachedInventoryAsync(string productId, int quantityAvailable)
+        {
+            _inventoryCache[productId] = quantityAvailable;
+            return Task.CompletedTask;
+        }
+
+        // Evt. en metode til at hente det senere
+        public int? GetCachedInventory(string productId)
+        {
+            return _inventoryCache.TryGetValue(productId, out var qty) ? qty : (int?)null;
         }
 
         public async Task DeleteAsync(string id)

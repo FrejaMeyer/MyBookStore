@@ -79,7 +79,7 @@
     <hr />
     <h4 class="text-center">Your next read is:</h4>
     <div class="d-flex justify-content-center">
-        <div class="card shadow p-3" style="width: 300px;">
+        <div class="card shadow p-3 rounded-4" style="width: 320px; cursor: pointer;" @onclick="NavigateToBookDetails">
             <img src="@randomBook.ImageUrl" alt="Book Cover" class="card-img-top mb-3" style="height: 300px; object-fit: contain;" />
             <div class="card-body">
                 <h5 class="card-title">@randomBook.Title</h5>
@@ -116,9 +116,13 @@
 
     private async Task LoadBooks()
     {
+        var http = new HttpClient
+        {
+            BaseAddress = new Uri($"http://localhost:30005")
+        };
         try
         {
-            var response = await Http.GetAsync("/api/catalog");
+            var response = await http.GetAsync("/api/catalog");
 
             if (response.IsSuccessStatusCode)
             {
@@ -147,6 +151,14 @@
             .Distinct()
             .OrderBy(g => g)
             .ToList();
+    }
+
+    private void NavigateToBookDetails()
+    {
+        if (randomBook != null)
+        {
+            Navigation.NavigateTo($"/book/{randomBook.Id}");
+        }
     }
 
     private void ApplyFilters()

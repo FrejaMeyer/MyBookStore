@@ -75,42 +75,43 @@ namespace BookOrder.Controllers
             return Ok();
         }
 
-        [Topic("bookpubsub", "validate-basket")]
-        [HttpPost("/validate-basket")]
-        public async Task<IActionResult> ValidateBasket([FromBody] BasketMessage message)
-        {
-        
-            _logger.LogInformation("Validating basket for workflow {workflowId}", message.WorkflowId);
-
-            var result = new Order
-            {
-                OrderId = message.OrderId,
-                Customer = new Customer
-                {
-                    CustomerId = message.Customer.CustomerId,
-                    Name = message.Customer.Name,
-                    Email = message.Customer.Email,
-                    Address = message.Customer.Address
-                },
-                Items = message.Items.Select(i => new OrderItem
-                {
-                    ProductId = i.ProductId,
-                    Name = i.Name,
-                    Quantity = i.Quantity,
-                    UnitPrice = i.UnitPrice
-                }).ToList(),
-                TotalPrice = message.TotalPrice,
-                Status = OrderStatus.Validated,
-            };
-
-            await _orderStateService.UpdateOrderStateAsync(result);
-
-            await _daprClient.PublishEventAsync("bookpubsub", "OrderCreated", result);
-
-            _logger.LogInformation("Ordre saved and event senst: {OrderId}", result.OrderId);
-
-            return Ok();
-        }
 
     }
 }
+
+        //[Topic("bookpubsub", "validate-basket")]
+        //[HttpPost("/validate-basket")]
+        //public async Task<IActionResult> ValidateBasket([FromBody] BasketMessage message)
+        //{
+        
+        //    _logger.LogInformation("Validating basket for workflow {workflowId}", message.WorkflowId);
+
+        //    var result = new Order
+        //    {
+        //        OrderId = message.OrderId,
+        //        Customer = new Customer
+        //        {
+        //            CustomerId = message.Customer.CustomerId,
+        //            Name = message.Customer.Name,
+        //            Email = message.Customer.Email,
+        //            Address = message.Customer.Address
+        //        },
+        //        Items = message.Items.Select(i => new OrderItem
+        //        {
+        //            ProductId = i.ProductId,
+        //            Name = i.Name,
+        //            Quantity = i.Quantity,
+        //            UnitPrice = i.UnitPrice
+        //        }).ToList(),
+        //        TotalPrice = message.TotalPrice,
+        //        Status = OrderStatus.Validated,
+        //    };
+
+        //    await _orderStateService.UpdateOrderStateAsync(result);
+
+        //    await _daprClient.PublishEventAsync("bookpubsub", "OrderCreated", result);
+
+        //    _logger.LogInformation("Ordre saved and event senst: {OrderId}", result.OrderId);
+
+        //    return Ok();
+        //}

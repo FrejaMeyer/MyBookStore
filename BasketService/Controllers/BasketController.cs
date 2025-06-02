@@ -92,7 +92,7 @@ public class BasketController : ControllerBase
             WorkflowId = $"wf-{Guid.NewGuid()}"
         };
 
-          await _daprClient.PublishEventAsync("bookpubsub", "start-workflow", message);
+        //  await _daprClient.PublishEventAsync("bookpubsub", "start-workflow", message);
        // await _http.PostAsJsonAsync("workflow/start-workflow", message);
 
         _logger.LogInformation(" Sends BasketMessage: OrderId={OrderId}, Items={ItemCount}, Customer={Customer}",

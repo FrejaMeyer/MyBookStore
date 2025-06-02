@@ -74,7 +74,11 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        var response = await Http.GetAsync("api/catalog");
+        var http = new HttpClient
+        {
+            BaseAddress = new Uri($"http://localhost:30005")
+        };
+        var response = await http.GetAsync("api/catalog");
         var content = await response.Content.ReadAsStringAsync();
 
         var allBooks = JsonSerializer.Deserialize<List<Book>>(content, new JsonSerializerOptions

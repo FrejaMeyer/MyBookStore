@@ -29,4 +29,18 @@ namespace Shared.Dto
         public string ProductId { get; set; }
         public int Quantity { get; set; }
     }
+
+    public class InventoryRequest
+    {
+        public string ProductId { get; set; }
+        public string CorrelationId { get; set; }
+        public string ReplyTo { get; set; }
+    }
+
+    public class InventoryResponse
+    {
+        public string ProductId { get; set; }
+        public int QuantityAvailable { get; set; }
+        public string CorrelationId { get; set; }
+    }
 }

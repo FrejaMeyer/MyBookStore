@@ -70,29 +70,6 @@ namespace Inventory.Controllers
             return Ok();
         }
 
-        // Handle inventory check from workflow
-        [Topic("bookpubsub", "check-inventory")]
-        [HttpPost("/check-inventory")]
-        public async Task<IActionResult> CheckInventory([FromBody] InventoryMessage message)
-        {
-            _logger.LogInformation("Checking inventory for Order {OrderId} / Workflow {WorkflowId}", message.OrderId, message.WorkflowId);
-
-            var success = await _inventoryService.ReserveStockAsync(message.ProductId, message.Quantity, message.OrderId);
-
-            var result = new InventoryResultMessage
-            {
-                WorkflowId = message.WorkflowId,
-                OrderId = message.OrderId,
-                ProductId = message.ProductId,
-                Quantity = message.Quantity,
-                Status = success ? "reserved" : "failed",
-                Error = success ? null : "Not enough stock"
-            };
-
-            await _daprClient.PublishEventAsync("bookpubsub", "InventoryChecked", result);
-
-            return Ok();
-        }
 
         [HttpPost("reserve")]
         public async Task<IActionResult> Reserve([FromBody] ReserveStockMessage message)
@@ -129,6 +106,43 @@ namespace Inventory.Controllers
             return Ok();
         }
 
+        [Topic("pubsub", "inventory.request")]
+        [HttpPost("pubsub-request")]
+        public async Task<IActionResult> HandleInventoryRequest([FromBody] InventoryRequest request)
+        {
+            var item = await _inventoryService.GetItemAsync(request.ProductId);
 
+            await _daprClient.PublishEventAsync("pubsub", request.ReplyTo, new InventoryResponse
+            {
+                ProductId = request.ProductId,
+                QuantityAvailable = item?.QuantityAvailable ?? 0
+            });
+
+            return Ok();
+        }
     }
 }
+
+        // Handle inventory check from workflow
+        //[Topic("bookpubsub", "check-inventory")]
+        //[HttpPost("/check-inventory")]
+        //public async Task<IActionResult> CheckInventory([FromBody] InventoryMessage message)
+        //{
+        //    _logger.LogInformation("Checking inventory for Order {OrderId} / Workflow {WorkflowId}", message.OrderId, message.WorkflowId);
+
+        //    var success = await _inventoryService.ReserveStockAsync(message.ProductId, message.Quantity, message.OrderId);
+
+        //    var result = new InventoryResultMessage
+        //    {
+        //        WorkflowId = message.WorkflowId,
+        //        OrderId = message.OrderId,
+        //        ProductId = message.ProductId,
+        //        Quantity = message.Quantity,
+        //        Status = success ? "reserved" : "failed",
+        //        Error = success ? null : "Not enough stock"
+        //    };
+
+        //    await _daprClient.PublishEventAsync("bookpubsub", "InventoryChecked", result);
+
+        //    return Ok();
+        //}
